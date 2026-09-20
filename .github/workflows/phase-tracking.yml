@@ -1,0 +1,153 @@
+name: Phase Tracking Dashboard
+
+on:
+  # Déclenchement manuel
+  workflow_dispatch:
+    inputs:
+      update_dashboard:
+        description: 'Mettre à jour le tableau de bord (#107)'
+        type: boolean
+        default: true
+  # Quotidien à 6h UTC
+  schedule:
+    - cron: '0 6 * * *'
+  # À chaque fermeture d'issue
+  issues:
+    types: [closed, reopened]
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  track-phases:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Collect issue status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const repos = [
+              { owner: 'MathildeDec', repo: 'Gcm4', label: 'Gcm4' },
+              { owner: 'MathildeDec', repo: 'AsyncVnc4', label: 'AsyncVnc4' },
+              { owner: 'MathildeDec', repo: 'AsyncRdp4', label: 'AsyncRdp4' }
+            ];
+
+            const phases = {
+              phase1: {
+                title: 'Phase 1 — Stabilisation bibliothèques',
+                issues: [
+                  { repo: 'AsyncVnc4', num: 34, blocks: ['Gcm4/104', 'Gcm4/95'] },
+                  { repo: 'AsyncVnc4', num: 22, blocks: ['Gcm4/104'] },
+                  { repo: 'AsyncRdp4', num: 36, blocks: ['Gcm4/105', 'Gcm4/71'] }
+                ]
+              },
+              phase2: {
+                title: 'Phase 2 — Intégration plugins',
+                issues: [
+                  { repo: 'Gcm4', num: 104, depends: ['AsyncVnc4/34'] },
+                  { repo: 'Gcm4', num: 105, depends: ['AsyncRdp4/36'] },
+                  { repo: 'Gcm4', num: 71, depends: ['Gcm4/105'] },
+                  { repo: 'Gcm4', num: 95, depends: ['Gcm4/104'] }
+                ]
+              },
+              phase3: {
+                title: 'Phase 3 — Tests serveurs réels',
+                issues: [
+                  { repo: 'AsyncVnc4', num: 27 },
+                  { repo: 'AsyncVnc4', num: 28 },
+                  { repo: 'AsyncVnc4', num: 31 },
+                  { repo: 'AsyncVnc4', num: 32 },
+                  { repo: 'AsyncRdp4', num: 34 },
+                  { repo: 'AsyncRdp4', num: 37 }
+                ]
+              },
+              phase4: {
+                title: 'Phase 4 — Migration GTK4 + nettoyage',
+                issues: [
+                  { repo: 'Gcm4', num: 97 },
+                  { repo: 'Gcm4', num: 96 },
+                  { repo: 'Gcm4', num: 98 },
+                  { repo: 'Gcm4', num: 99 },
+                  { repo: 'Gcm4', num: 75 },
+                  { repo: 'Gcm4', num: 74 }
+                ]
+              }
+            };
+
+            const status = {};
+            for (const r of repos) {
+              const { data: issues } = await github.rest.issues.listForRepo({
+                owner: r.owner,
+                repo: r.repo,
+                state: 'all',
+                per_page: 100
+              });
+              for (const issue of issues) {
+                const key = `${r.repo}/${issue.number}`;
+                status[key] = issue.state;
+              }
+            }
+
+            core.setOutput('status', JSON.stringify(status));
+
+            // Build summary
+            let summary = '## Avancement des phases\n\n';
+            for (const [phaseKey, phase] of Object.entries(phases)) {
+              const total = phase.issues.length;
+              const closed = phase.issues.filter(i => {
+                const key = `${i.repo}/${i.num}`;
+                return status[key] === 'closed';
+              }).length;
+              const pct = Math.round(closed / total * 100);
+              const icon = closed === total ? '✅' : closed > 0 ? '🟡' : '🔴';
+              summary += `${icon} **${phase.title}** — ${closed}/${total} (${pct}%)\n`;
+
+              for (const issue of phase.issues) {
+                const key = `${issue.repo}/${issue.num}`;
+                const state = status[key] || 'unknown';
+                const stateIcon = state === 'closed' ? '✅' : issue.depends ? '⏳' : '🔴';
+                const depNote = issue.depends ? ` (dépend de ${issue.depends.join(', ')})` : '';
+                const blockNote = issue.blocks ? ` (bloque ${issue.blocks.join(', ')})` : '';
+                summary += `  - ${stateIcon} ${key}${depNote}${blockNote}\n`;
+              }
+              summary += '\n';
+            }
+
+            core.summary.addRaw(summary);
+            await core.summary.write();
+
+      - name: Update dashboard issue
+        if: github.event.inputs.update_dashboard != 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Lire le statut collecté
+            const status = JSON.parse(process.env.STATUS || '{}');
+
+            const dashboardBody = `## Tableau de bord — Mise à jour automatique
+
+> Dernière mise à jour : ${new Date().toISOString().slice(0, 10)}
+> Roadmap : [#106](https://github.com/MathildeDec/Gcm4/issues/106)
+
+### Avancement
+
+${summary}
+
+### Détail par dépôt
+
+Voir les issues ouvertes dans chaque dépôt :
+- [Gcm4](https://github.com/MathildeDec/Gcm4/issues)
+- [AsyncVnc4](https://github.com/MathildeDec/AsyncVnc4/issues)
+- [AsyncRdp4](https://github.com/MathildeDec/AsyncRdp4/issues)
+`;
+
+            await github.rest.issues.update({
+              owner: 'MathildeDec',
+              repo: 'Gcm4',
+              issue_number: 107,
+              body: dashboardBody
+            });
