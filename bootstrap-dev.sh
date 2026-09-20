@@ -1,0 +1,186 @@
+#!/bin/bash
+# ─────────────────────────────────────────────────────────────────────────────
+# bootstrap-dev.sh — Installeur d'environnement de développement (uv)
+#
+# Remplace Poetry par uv depuis cette session : plus simple sur les deux
+# points qui nécessitaient un contournement documenté avec Poetry (bug de
+# détection d'interpréteur derrière un shim pyenv, erreur DBus/secretstorage
+# du backend keyring) — uv n'a présenté ni l'un ni l'autre en usage normal
+# lors de cette migration ; à re-signaler si un cas reproductible apparaît.
+#
+# Automatise :
+#   1. Paquets système (typelibs GTK/VTE/VNC/SPICE) via apt
+#   2. Création du venv avec accès aux paquets système (`uv venv
+#      --system-site-packages`, obligatoire pour `import gi`)
+#   3. `uv sync` avec tous les extras (netmiko, paramiko, libvirt, vnc) et
+#      le groupe de dépendances de développement (ruff, black, pytest)
+#   4. (optionnel, --with-rdp) compilation de gtk-frdp/ via meson
+#   5. (optionnel, --with-snmp) libsnmp-dev + ezsnmp (plugin_snmp_push.py)
+#
+# Usage :
+#   ./bootstrap-dev.sh              # installe tout, support RDP+SNMP inclus
+#   ./bootstrap-dev.sh --without-rdp # n'installe pas le support RDP
+#   ./bootstrap-dev.sh --without-snmp # n'installe pas le support SNMP (ezsnmp)
+#   ./bootstrap-dev.sh --no-apt     # ne touche pas aux paquets système (sudo)
+# ─────────────────────────────────────────────────────────────────────────────
+set -euo pipefail
+
+WITH_RDP=1
+WITH_SNMP=1
+NO_APT=0
+for arg in "$@"; do
+    case "$arg" in
+        --with-rdp) WITH_RDP=1 ;;
+        --without-rdp) WITH_RDP=0 ;;
+        --with-snmp) WITH_SNMP=1 ;;
+        --without-snmp) WITH_SNMP=0 ;;
+        --no-apt) NO_APT=1 ;;
+        -h|--help)
+            grep '^#' "$0" | sed 's/^# \{0,1\}//'
+            exit 0
+            ;;
+        *) echo "Argument inconnu : $arg" >&2; exit 1 ;;
+    esac
+done
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
+info()  { printf '\033[94m[bootstrap]\033[0m %s\n' "$1"; }
+ok()    { printf '\033[92m[ OK ]\033[0m %s\n' "$1"; }
+warn()  { printf '\033[93m[WARN]\033[0m %s\n' "$1"; }
+fail()  { printf '\033[91m[FAIL]\033[0m %s\n' "$1" >&2; }
+
+# ── 1. Paquets système ───────────────────────────────────────────────────────
+if [[ "$NO_APT" -eq 0 ]]; then
+    if ! command -v apt-get >/dev/null 2>&1; then
+        warn "apt-get introuvable (distribution non-Debian/Ubuntu) : passez --no-apt et installez manuellement les paquets listés dans le Makefile / README."
+    else
+        info "Installation des dépendances système (sudo apt-get install ...)"
+        APT_PKGS=(
+            python3-gi
+            gir1.2-gtk-3.0
+            gir1.2-vte-2.91
+            gir1.2-gtk-vnc-2.0
+            gir1.2-spiceclientgtk-3.0
+            python3-venv
+            expect
+            python3-paramiko
+            build-essential
+            pkg-config
+            libvirt-dev
+        )
+        # Paquet venv versionné (ex: python3.13-venv) si disponible, en plus du générique
+        PYVER="$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
+        if apt-cache show "python${PYVER}-venv" >/dev/null 2>&1; then
+            APT_PKGS+=("python${PYVER}-venv")
+        fi
+        if [[ "$WITH_RDP" -eq 1 ]]; then
+            APT_PKGS+=(
+                meson
+                ninja-build
+                valac
+                libgirepository1.0-dev
+                libfuse3-dev
+                libgtk-3-dev
+                gtk-doc-tools
+                freerdp3-dev
+            )
+        fi
+        if [[ "$WITH_SNMP" -eq 1 ]]; then
+            APT_PKGS+=(
+                libsnmp-dev
+                snmp-mibs-downloader
+            )
+        fi
+        sudo apt-get update -qq
+        if ! sudo apt-get install -y "${APT_PKGS[@]}"; then
+            fail "Échec de l'installation de certains paquets apt — vérifiez le nom des paquets pour votre distribution."
+            exit 1
+        fi
+        ok "Paquets système installés"
+    fi
+else
+    info "--no-apt : étape d'installation système ignorée"
+fi
+
+# ── 2. uv disponible ? ────────────────────────────────────────────────────────
+if ! command -v uv >/dev/null 2>&1; then
+    fail "uv n'est pas installé. Installez-le avec : curl -LsSf https://astral.sh/uv/install.sh | sh"
+    exit 1
+fi
+
+# ── 3. Créer le venv avec accès aux paquets système (obligatoire pour `gi`) ──
+# `import gi` (PyGObject) résout les bindings GTK/VTE via les typelibs
+# système installés à l'étape 1, jamais via pip — le venv doit donc voir les
+# paquets système (équivalent du `virtualenvs.options.system-site-packages`
+# de Poetry).
+if [[ ! -d .venv ]]; then
+    info "Création du venv (uv venv --system-site-packages)"
+    uv venv --system-site-packages .venv
+    ok ".venv créé"
+else
+    info ".venv existe déjà, réutilisation"
+fi
+
+# ── 4. Installation des dépendances (tous les extras + groupe dev) ───────────
+info "uv sync --extra netmiko --extra paramiko --extra libvirt --extra vnc --group dev"
+if ! uv sync --extra netmiko --extra paramiko --extra libvirt --extra vnc --group dev; then
+    fail "uv sync a échoué — voir le journal ci-dessus."
+    exit 1
+fi
+ok "Dépendances Python installées"
+
+# ── 5. Vérification rapide des imports critiques ─────────────────────────────
+info "Vérification des imports (gi, Cryptodome)"
+if uv run python3 -c "import gi; gi.require_version('Gtk', '3.0'); from gi.repository import Gtk, Vte" 2>/dev/null; then
+    ok "gi / Gtk / Vte OK"
+else
+    warn "gi/Gtk/Vte indisponible — vérifiez python3-gi, gir1.2-gtk-3.0, gir1.2-vte-2.91"
+fi
+if uv run python3 -c "import Cryptodome" 2>/dev/null; then
+    ok "Cryptodome (VNC) OK"
+else
+    warn "Cryptodome indisponible — relancez : uv sync --extra vnc"
+fi
+
+# ── 8. Support RDP optionnel (gtk-frdp) ──────────────────────────────────────
+if [[ "$WITH_RDP" -eq 1 ]]; then
+    info "Compilation de gtk-frdp/ (meson) pour activer plugin_rdp"
+    if ! command -v meson >/dev/null 2>&1 || ! command -v valac >/dev/null 2>&1; then
+        fail "meson/valac manquants — relancez avec --with-rdp sans --no-apt, ou installez-les manuellement."
+    else
+        # --prefix=/usr (et non /usr/local, le défaut de meson) : le typelib est
+        # ainsi installé dans /usr/lib/.../girepository-1.0, le chemin que
+        # GObject-Introspection scanne par défaut. Avec /usr/local, l'import
+        # `from gi.repository import GtkFrdp` échoue (ValueError: Namespace
+        # GtkFrdp not available) sauf à exporter GI_TYPELIB_PATH manuellement.
+        rm -rf gtk-frdp/build
+        meson setup --prefix=/usr gtk-frdp/build gtk-frdp
+        ninja -C gtk-frdp/build
+        sudo ninja -C gtk-frdp/build install
+        sudo ldconfig
+        ok "gtk-frdp compilé et installé (relancez l'app pour activer plugin_rdp)"
+    fi
+else
+    warn "Support RDP (plugin_rdp / GtkFrdp) non installé — relancez avec --with-rdp pour l'activer."
+fi
+
+# ── 9. Support SNMP optionnel (ezsnmp, plugin_snmp_push.py) ─────────────────
+if [[ "$WITH_SNMP" -eq 1 ]]; then
+    info "apt install libsnmp-dev snmp-mibs-downloader && pip install ezsnmp loguru --break-system-packages"
+    if [[ "$NO_APT" -eq 1 ]] && ! command -v snmpget >/dev/null 2>&1; then
+        warn "libsnmp-dev absent et --no-apt actif : installez-le manuellement avant ezsnmp."
+    fi
+    if uv run pip install ezsnmp loguru --break-system-packages; then
+        ok "ezsnmp installé (relancez l'app pour activer plugin_snmp_push)"
+    else
+        fail "échec de l'installation d'ezsnmp — vérifiez que libsnmp-dev est bien installé."
+    fi
+else
+    warn "Support SNMP (plugin_snmp_push / ezsnmp) non installé — relancez avec --with-snmp pour l'activer."
+fi
+
+echo
+ok "Environnement prêt. Lancez l'application avec :"
+echo "    uv run python3 gnome_connection_manager.py"

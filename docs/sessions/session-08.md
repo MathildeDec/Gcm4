@@ -1,0 +1,8 @@
+# Session 08 — 2026-09-02 (plus tôt) — Préférence « Désactiver les raccourcis clavier »
+
+## Fonctionnalité livrée
+
+| Désactiver les raccourcis clavier (préférence) | ✅ Fait (2026-09-02) — nouvelle préférence globale `conf.DISABLE_SHORTCUTS` (case à cocher dans Préférences, à côté de « Circle around tabs »), câblée en une seule ligne de garde en tête de `on_terminal_keypress()` : si activée, la fonction retourne `False` avant même de consulter le dict `shortcuts`, donc **toute** combinaison (standard et personnalisée — même dict, voir `loadConfig()`) part directement au terminal/session distante sans interception locale. ⚠️ Nuance sur l'intitulé d'origine du backlog (« y compris retirer Ctrl+Q / Alt+F par défaut ») : recherche textuelle confirmant qu'il n'existe aucun accélérateur `Gtk.AccelGroup`/`add_accelerator()` codé en dur nulle part dans le projet (ni Ctrl+Q, ni Alt+F) — cette partie de l'intitulé ne correspondait à rien dans le code actuel, donc rien à « retirer » de ce côté-là ; seul le mécanisme `[shortcuts]` existe et il est maintenant couvert. Pas de fonction pure ajoutée à `gcm4_core.py` : c'est un simple court-circuit booléen en tête de fonction, sans calcul à vérifier par un test — extraire `not conf.DISABLE_SHORTCUTS` dans un fichier séparé n'aurait rien testé de plus que ce que la lecture du code montre déjà. Câblage GTK non exécuté en conditions réelles (pas de GTK/VTE dans cet environnement, comme pour le reste du projet) |
+
+---
+*Note de journal d'origine (claude.md) : « Il y a douze sessions (2026-09-02, plus tôt) : préférence « Désactiver les raccourcis clavier » (conf.DISABLE_SHORTCUTS), détail §4.1. »*

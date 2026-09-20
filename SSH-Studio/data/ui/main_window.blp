@@ -1,0 +1,71 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $MainWindow: Adw.ApplicationWindow {
+  default-width: 1300;
+  default-height: 720;
+
+  Adw.Breakpoint {
+    condition ("max-width: 1100sp")
+
+    setters {
+      host_editor.viewswitcher-policy: narrow;
+    }
+  }
+
+  Adw.Breakpoint {
+    condition ("max-width: 800sp")
+
+    setters {
+      split_view.collapsed: true;
+      host_list.show-window-controls: true;
+    }
+  }
+
+  Adw.ToastOverlay toast_overlay {
+  Adw.ToolbarView main_box {
+    hexpand: true;
+    vexpand: true;
+    Adw.NavigationSplitView split_view {
+        sidebar: Adw.NavigationPage {
+          title: _("SSH Hosts");
+
+          child: Adw.NavigationView sidebar_nav {
+            Adw.NavigationPage {
+              title: _("SSH Hosts");
+
+              child: Box {
+                orientation: vertical;
+                margin-start: 8;
+                margin-end: 8;
+
+                $HostList host_list {}
+              }
+            ;}
+          };
+        };
+
+        content: Adw.NavigationPage {
+          title: _("Host Editor");
+
+          child: Adw.NavigationView content_nav {
+            Adw.NavigationPage {
+              title: _("Welcome");
+              tag: "welcome";
+
+              child: $WelcomeView welcome_view {};
+            }
+            Adw.NavigationPage {
+              title: _("Host Editor");
+              tag: "host-editor";
+
+              child: $HostEditor host_editor {};
+            }
+          };
+        };
+      }
+
+      
+    }
+  }
+}

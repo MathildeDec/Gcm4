@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>GCM — Architecture plugin (proposition)</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js"></script>
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #11161d;
+    --border: #2a323d;
+    --text: #d6dde5;
+    --muted: #8b96a3;
+    --core: #3a6ea5;
+    --core-bg: #16232f;
+    --plugin: #b5651d;
+    --plugin-bg: #2a1d12;
+    --shared: #5a7a5a;
+    --shared-bg: #16241a;
+    --accent: #d97757;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "JetBrains Mono", "Fira Code", ui-monospace, "SF Mono", Consolas, monospace;
+    padding: 32px 24px 64px;
+  }
+  h1 {
+    font-size: 1.15rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    margin: 0 0 4px;
+    color: var(--text);
+  }
+  .subtitle {
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin: 0 0 28px;
+  }
+  .legend {
+    display: flex;
+    gap: 22px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+    font-size: 0.78rem;
+  }
+  .legend-item { display: flex; align-items: center; gap: 8px; color: var(--muted); }
+  .swatch { width: 13px; height: 13px; border-radius: 3px; flex-shrink: 0; }
+  .swatch.core { background: var(--core); }
+  .swatch.plugin { background: var(--plugin); }
+  .swatch.shared { background: var(--shared); }
+
+  .diagram-panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 12px;
+    overflow-x: auto;
+  }
+
+  .notes {
+    margin-top: 28px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 14px;
+  }
+  .note {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--core);
+    border-radius: 6px;
+    padding: 14px 16px;
+    font-size: 0.82rem;
+    line-height: 1.55;
+  }
+  .note.plugin { border-left-color: var(--plugin); }
+  .note.shared { border-left-color: var(--shared); }
+  .note h3 {
+    margin: 0 0 8px;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text);
+  }
+  .note p { margin: 0; color: var(--muted); }
+  .note code { color: var(--accent); background: rgba(217,119,87,0.08); padding: 1px 5px; border-radius: 3px; }
+
+  /* Mermaid class-diagram color overrides */
+  .coreBox rect { fill: var(--core-bg) !important; stroke: var(--core) !important; }
+  .pluginBox rect { fill: var(--plugin-bg) !important; stroke: var(--plugin) !important; }
+  .sharedBox rect { fill: var(--shared-bg) !important; stroke: var(--shared) !important; }
+</style>
+</head>
+<body>
+
+  <h1>GCM — architecture à plugins (proposition)</h1>
+  <p class="subtitle">Diagramme de classes UML — périmètre cœur d'application vs. plugins par protocole. Base : structure réelle du projet (widgets.py, gnome_connection_manager.py, models.py, ssh_*.py).</p>
+
+  <div class="legend">
+    <div class="legend-item"><span class="swatch core"></span> Cœur d'application (ne bouge pas)</div>
+    <div class="legend-item"><span class="swatch plugin"></span> Plugin par protocole (nouveau découpage)</div>
+    <div class="legend-item"><span class="swatch shared"></span> Service partagé (utilisé par les plugins, pas un plugin lui-même)</div>
+  </div>
+
+  <div class="diagram-panel">
+    <pre class="mermaid">
+classDiagram
+    direction TB
+
+    class GCMBase {
+      <<core>>
+      +builder Gtk.Builder
+      +main_widget Gtk.Widget
+      +new()
+      +get_widget(name) Gtk.Widget
+    }
+
+    class PluginRegistry {
+      <<core>>
+      -_plugins dict~str,ConnectionPlugin~
+      +register(plugin)
+      +get(protocol_id) ConnectionPlugin
+      +all() list
+    }
+
+    class Host {
+      <<core>>
+      +name str
+      +host str
+      +port str
+      +user str
+      +password str
+      +protocol str
+      +group str
+      +description str
+      +options dict
+    }
+
+    class Wmain {
+      <<core>>
+      -registry PluginRegistry
+      -treeServers Gtk.TreeView
+      -notebook Gtk.Notebook
+      +open_connection(host)
+      +_build_primary_menu()
+      +createMenu()
+    }
+
+    class Whost {
+      <<core>>
+      -registry PluginRegistry
+      -current_plugin ConnectionPlugin
+      -common_fields Gtk.Grid
+      +init(group, host)
+      +on_cmbType_changed()
+      +save_host()
+    }
+
+    class ConnectionPlugin {
+      <<interface>>
+      +protocol_id str
+      +display_name str
+      +default_port int
+      +icon_name str
+      +build_tab(host, get_password) Gtk.Widget
+      +build_edit_page() Gtk.Widget
+      +load_host_fields(host, page)
+      +save_host_fields(page, host)
+      +validate(page) list~str~
+      +menu_actions() list
+    }
+
+    class SshPlugin {
+      <<plugin>>
+    }
+    class VncPlugin {
+      <<plugin>>
+    }
+    class SpicePlugin {
+      <<plugin>>
+    }
+    class RdpPlugin {
+      <<plugin>>
+    }
+    class SerialPlugin {
+      <<plugin>>
+    }
+    class IpmiSolPlugin {
+      <<plugin>>
+    }
+    class WebPlugin {
+      <<plugin>>
+    }
+
+    class VncTab {
+      <<existing>>
+    }
+    class SpiceTab {
+      <<existing>>
+    }
+    class FreeRdpTab {
+      <<existing>>
+    }
+    class SerialTab {
+      <<existing>>
+    }
+    class IpmiSolTab {
+      <<existing>>
+    }
+    class WebTab {
+      <<existing>>
+    }
+
+    class SSHConfigParser {
+      <<shared>>
+    }
+    class SSHKeyManagerDialog {
+      <<shared>>
+    }
+    class KeyPickerDialog {
+      <<shared>>
+    }
+
+    GCMBase <|-- Wmain
+    GCMBase <|-- Whost
+
+    Wmain o-- PluginRegistry
+    Whost o-- PluginRegistry
+    PluginRegistry o-- "1..*" ConnectionPlugin
+
+    ConnectionPlugin <|.. SshPlugin
+    ConnectionPlugin <|.. VncPlugin
+    ConnectionPlugin <|.. SpicePlugin
+    ConnectionPlugin <|.. RdpPlugin
+    ConnectionPlugin <|.. SerialPlugin
+    ConnectionPlugin <|.. IpmiSolPlugin
+    ConnectionPlugin <|.. WebPlugin
+
+    VncPlugin *-- VncTab
+    SpicePlugin *-- SpiceTab
+    RdpPlugin *-- FreeRdpTab
+    SerialPlugin *-- SerialTab
+    IpmiSolPlugin *-- IpmiSolTab
+    WebPlugin *-- WebTab
+
+    SshPlugin ..> SSHConfigParser : utilise
+    SshPlugin ..> SSHKeyManagerDialog : utilise
+    SshPlugin ..> KeyPickerDialog : utilise
+
+    Wmain ..> Host
+    Whost ..> Host
+    ConnectionPlugin ..> Host
+
+    cssClass "GCMBase,PluginRegistry,Host,Wmain,Whost" coreBox
+    cssClass "SshPlugin,VncPlugin,SpicePlugin,RdpPlugin,SerialPlugin,IpmiSolPlugin,WebPlugin,ConnectionPlugin" pluginBox
+    cssClass "SSHConfigParser,SSHKeyManagerDialog,KeyPickerDialog,VncTab,SpiceTab,FreeRdpTab,SerialTab,IpmiSolTab,WebTab" sharedBox
+    </pre>
+  </div>
+
+  <div class="notes">
+    <div class="note">
+      <h3>Reste dans le cœur</h3>
+      <p><code>Wmain</code> (fenêtre, arbre, notebook, menu hamburger), <code>Whost</code> (coquille du dialogue — champs communs Name/Host/Port/User/Password/Group + sélecteur de protocole), <code>Host</code> (modèle générique), <code>GCMBase</code>, persistance <code>gcm.conf</code>, chiffrement, <code>run_dialog_sync</code>, <code>PluginRegistry</code>.</p>
+    </div>
+    <div class="note plugin">
+      <h3>Devient plugin</h3>
+      <p>Chaque <code>Xxx</code>Tab existant (VncTab, SpiceTab, FreeRdpTab, SerialTab, IpmiSolTab, WebTab) est enveloppé par un adaptateur <code>XxxPlugin</code> implémentant <code>ConnectionPlugin</code> — pas de réécriture, juste une façade. Idem pour SSH : devient <code>SshPlugin</code>, symétrique aux autres.</p>
+    </div>
+    <div class="note shared">
+      <h3>Service partagé (pas un plugin)</h3>
+      <p><code>SSHConfigParser</code>/<code>SSHKeyManagerDialog</code>/<code>KeyPickerDialog</code> ne sont utilisés QUE par <code>SshPlugin</code> — ils vivent dans le même paquet/module que lui, mais ne sont pas eux-mêmes enregistrés dans le <code>PluginRegistry</code> (ils n'ont pas de protocole propre).</p>
+    </div>
+    <div class="note">
+      <h3>Refactor nécessaire : <code>Host</code></h3>
+      <p>Aujourd'hui <code>Host.__init__</code> connaît en dur chaque champ de chaque protocole (<code>rdp_domain</code>, <code>serial_baud</code>...). Pour une vraie extensibilité, ces champs doivent migrer vers un dict générique <code>options</code> que chaque plugin lit/écrit sous sa propre clé — sinon ajouter un plugin oblige toujours à modifier le cœur.</p>
+    </div>
+  </div>
+
+<script>
+  mermaid.initialize({ startOnLoad: true, theme: "dark", themeVariables: { fontFamily: "monospace" } });
+</script>
+</body>
+</html>

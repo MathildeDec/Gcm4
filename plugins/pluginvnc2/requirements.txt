@@ -1,0 +1,9 @@
+numpy
+cryptography
+loguru
+
+# PyGObject volontairement absent d'ici : il compile depuis les sources
+# sous pip et a besoin des en-têtes système (girepository) pour ça. Sur
+# Debian/Ubuntu : `sudo apt install python3-gi gir1.2-gtk-4.0` (voir
+# install.sh, qui crée le venv avec --system-site-packages pour que
+# cette installation système reste visible dedans).

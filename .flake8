@@ -1,0 +1,10 @@
+[flake8]
+# Aligne flake8 sur le standard 99 caractères déjà déclaré pour tout le
+# dépôt (pyproject.toml : [tool.ruff] line-length = 99, [tool.black]
+# line-length = 99) — absent jusqu'ici (session-36, 2026-09-16), flake8
+# tournait avec sa limite par défaut de 79 caractères, jamais alignée,
+# faisant remonter 435 faux positifs E501 sur gnome_connection_manager.py
+# seul. Ne couvre que le formatage ; les erreurs de logique restantes
+# (E711/E721/E722/F841/F824...) ne sont pas concernées par ce fichier —
+# voir docs/architecture.md §2.8 et docs/sessions/session-36.md.
+max-line-length = 99

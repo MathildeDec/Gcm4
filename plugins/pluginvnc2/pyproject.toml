@@ -1,0 +1,29 @@
+[project]
+name = "pluginvnc2"
+version = "0.1.0"
+description = "Onglet VNC (GTK4) pour gnome-connection-manager, base sur asyncvnc2"
+requires-python = ">=3.11"
+dependencies = [
+    "PyGObject>=3.50",
+    "numpy",
+    "cryptography",
+    "loguru",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff",
+    "pytest",
+    "pytest-asyncio",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "C90"]
+ignore = ["E203", "E401", "E402", "E501", "E711", "E712", "E713", "E721", "E722", "E266", "F401", "F841"]
+
+[tool.ruff.format]
+quote-style = "double"

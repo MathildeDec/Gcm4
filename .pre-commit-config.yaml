@@ -1,0 +1,56 @@
+# Configuration pre-commit — voir CONSIGNES-AGENTS-IA.md à la racine du
+# dépôt pour le contexte et la raison d'être de chaque hook.
+#
+# Installation (une fois, par personne/agent qui commite) :
+#   pip install pre-commit --break-system-packages
+#   pre-commit install
+#
+# Exécution manuelle sur tout le dépôt (utile après avoir ajouté ce fichier,
+# ou pour vérifier avant un gros commit) :
+#   pre-commit run --all-files
+
+# Répertoires vendorisés/tiers ou générés — jamais reformatés par ces hooks,
+# quelle que soit la convention de style du projet d'origine. Vérifié en
+# testant cette config (2026-08-30) : `--all-files` sans cette exclusion
+# reformate ~40 fichiers de SSH-Studio/ (dépôt tiers importé tel quel) et
+# gtk-frdp/, ce qui n'a rien à faire dans ce dépôt.
+exclude: ^(SSH-Studio|gtk-frdp|rdp|vnc|__pycache__|\.pytest_cache|\.ruff_cache)/
+
+repos:
+  # Ruff : lint + format. Le hook officiel ne s'applique qu'aux fichiers
+  # effectivement modifiés dans le commit — les 423 erreurs préexistantes
+  # de tests/test_gcm.py (voir features.md §2.8) ne bloquent donc PAS un
+  # commit qui ne touche pas ce fichier.
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.5
+    hooks:
+      - id: ruff
+        name: ruff (lint)
+        args: [--fix]
+      - id: ruff-format
+        name: ruff (format)
+
+  # Hygiène de base (espaces en fin de ligne, fin de fichier, gros fichiers
+  # ajoutés par erreur, conflits de merge oubliés).
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=2048]
+
+  # Détecteur d'imports circulaires à charge de module (tools/check_circular_imports.py).
+  # Analyse TOUT le dépôt à chaque exécution (un cycle implique au moins
+  # deux fichiers, dont un seul peut avoir changé) — pass_filenames: false
+  # pour ignorer la liste de fichiers modifiés que pre-commit fournirait
+  # sinon en argument.
+  - repo: local
+    hooks:
+      - id: check-circular-imports
+        name: pas d'import circulaire à charge de module
+        entry: python3 tools/check_circular_imports.py
+        language: system
+        pass_filenames: false
+        always_run: true

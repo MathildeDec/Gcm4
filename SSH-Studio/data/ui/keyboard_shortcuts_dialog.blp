@@ -1,0 +1,52 @@
+using Gtk 4.0;
+using Adw 1;
+
+Adw.ShortcutsDialog keyboard_shortcuts_dialog {
+  width-request: 680;
+  height-request: 380;
+  Adw.ShortcutsSection {
+    title: _("General");
+    
+    Adw.ShortcutsItem { title: _("Open Menu"); accelerator: "F10"; }
+    Adw.ShortcutsItem { title: _("Open SSH Config File"); accelerator: "<Ctrl>O"; }
+    Adw.ShortcutsItem { title: _("Save Configuration"); accelerator: "<Ctrl>S"; }
+    Adw.ShortcutsItem { title: _("Reload Configuration"); accelerator: "<Ctrl>R"; }
+    Adw.ShortcutsItem { title: _("Search"); accelerator: "<Ctrl>F"; }
+    Adw.ShortcutsItem { title: _("Toggle Sidebar"); accelerator: "F9"; }
+    Adw.ShortcutsItem { title: _("Preferences"); accelerator: "<Ctrl>comma"; }
+    Adw.ShortcutsItem { title: _("SSH Key Manager"); accelerator: "<Ctrl>K"; }
+  }
+
+  Adw.ShortcutsSection {
+    title: _("Host Management");
+
+    Adw.ShortcutsItem { title: _("Add New Host"); accelerator: "<Ctrl>N"; }
+    Adw.ShortcutsItem { title: _("Duplicate Host"); accelerator: "<Ctrl>D"; }
+    Adw.ShortcutsItem { title: _("Delete Host"); accelerator: "<Ctrl>Delete"; }
+    Adw.ShortcutsItem { title: _("Edit Host"); accelerator: "Return"; }
+    Adw.ShortcutsItem { title: _("Edit Host"); accelerator: "F2"; }
+  }
+
+  Adw.ShortcutsSection {
+    title: _("Navigation");
+
+    Adw.ShortcutsItem { title: _("Move Selection Up"); accelerator: "Up"; }
+    Adw.ShortcutsItem { title: _("Move Selection Down"); accelerator: "Down"; }
+    Adw.ShortcutsItem { title: _("Jump to First Host"); accelerator: "Home"; }
+    Adw.ShortcutsItem { title: _("Jump to Last Host"); accelerator: "End"; }
+    Adw.ShortcutsItem { title: _("Page Up"); accelerator: "Page_Up"; }
+    Adw.ShortcutsItem { title: _("Page Down"); accelerator: "Page_Down"; }
+    Adw.ShortcutsItem { title: _("Next Field"); accelerator: "Tab"; }
+    Adw.ShortcutsItem { title: _("Previous Field"); accelerator: "<Shift>Tab"; }
+    Adw.ShortcutsItem { title: _("Clear Focus"); accelerator: "Escape"; }
+  }
+
+  Adw.ShortcutsSection {
+    title: _("Dialog Shortcuts");
+
+    Adw.ShortcutsItem { title: _("Close Dialog"); accelerator: "Escape"; }
+    Adw.ShortcutsItem { title: _("Generate Key"); accelerator: "<Ctrl>N"; }
+    Adw.ShortcutsItem { title: _("Import Key"); accelerator: "<Ctrl>I"; }
+    Adw.ShortcutsItem { title: _("Delete Key"); accelerator: "Delete"; }
+  }
+}

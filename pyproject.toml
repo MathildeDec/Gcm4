@@ -1,0 +1,192 @@
+[project]
+name = "gnome-connection-manager"
+version = "1.3.3"
+description = "Simple tabbed SSH/Telnet/RDP/VNC/SPICE/Serial connection manager for GTK3"
+license = "GPL-3.0-or-later"
+readme = "README.md"
+requires-python = ">=3.10,<4"
+authors = [
+    { name = "MathildeDec", email = "mathilde.deuscher@gmail.com" },
+]
+dependencies = ["loguru (>=0.7.3,<0.8.0)"]
+
+
+[project.urls]
+Homepage = "https://github.com/MathildeDec/gnome-connection-manager"
+Repository = "https://github.com/MathildeDec/gnome-connection-manager"
+Changelog = "https://github.com/MathildeDec/gnome-connection-manager/blob/main/CHANGELOG.md"
+
+# NOTE — GTK3/VTE (PyGObject, `import gi` + `gi.repository.{Gtk,Vte,Gdk,...}`)
+# ne figurent pas ci-dessous : ces bindings doivent correspondre aux typelibs
+# système (gir1.2-gtk-3.0, gir1.2-vte-2.91…) installés via le gestionnaire de
+# paquets de la distribution (voir Makefile : python3-gi, gir1.2-vte-2.91).
+# Un `pip install PyGObject` isolé ne fournit pas ces typelibs et peut échouer
+# sans les en-têtes système (libgirepository-dev, libcairo-dev…) ; ce n'est
+# donc pas déclaré comme dépendance Poetry.
+#
+# Fonctionnalités optionnelles — l'absence d'un extra n'empêche pas le
+# démarrage de l'app : le chargeur de plugins (plugin_base.PluginRegistry)
+# capture les erreurs d'import et désactive juste le plugin concerné
+# (message "n outil(s)/plugin(s) n'ont pas pu se charger" au démarrage) :
+#   - netmiko    : push de config en masse (netmiko_bulk_core.py, plugin_netmiko_push.py)
+#   - paramiko   : SPICE via libvirt, push SNMP/inventaire (plugin_spice.py,
+#                  snmp_push_core.py, hypervisor_import_common.py, tools/*.py)
+#   - libvirt    : import de VM SPICE via libvirt-python (plugin_spice.py)
+#   - vnc        : plugin_vnc.py (import top-level de Cryptodome pour
+#                  l'authentification VNC/DES) — nécessite en plus le
+#                  typelib système GtkVnc/GVnc (gir1.2-gtkvnc-2.0, non pip)
+#                  NB : pycryptodomex (et non pycryptodome) est utilisé car
+#                  seul ce paquet garantit la fourniture du namespace
+#                  `Cryptodome` importé par le code (pycryptodome n'installe
+#                  parfois que le namespace legacy `Crypto`).
+#
+# NOTE — plugin_rdp.py (GtkFrdp.Display) n'a pas d'extra correspondant : le
+# namespace GObject Introspection "GtkFrdp" provient du sous-projet local
+# gtk-frdp/ (à compiler via meson et installer au niveau système), ce n'est
+# pas un paquet PyPI.
+[project.optional-dependencies]
+netmiko = ["netmiko>=4.2.0"]
+paramiko = ["paramiko>=3.4.0"]
+libvirt = ["libvirt-python>=9.0.0"]
+vnc = ["pycryptodomex>=3.20.0"]
+
+# ─── Gestion des dépendances (uv) ────────────────────────────────────────────
+# GCM est une application GTK autonome, packagée en .deb/.rpm via `make`
+# (voir Makefile / postinst), et non une bibliothèque distribuée sur PyPI.
+# uv sert donc uniquement à la gestion des dépendances et de
+# l'environnement de développement (`uv sync`, `uv.lock`), d'où
+# `[tool.uv] package = false` ci-dessous (équivalent du `package-mode =
+# false` de Poetry, qu'uv remplace depuis cette session) : projet
+# "virtuel", aucun wheel n'est construit, pas de `[build-system]` requis.
+[tool.uv]
+package = false
+
+[dependency-groups]
+dev = [
+    "ruff>=0.6.0",
+    "black>=24.0.0",
+    "pytest>=8.0.0",
+]
+
+# ─── Ruff ────────────────────────────────────────────────────────────────────
+[tool.ruff]
+# Cible Python 3.10+
+target-version = "py310"
+line-length = 99
+
+exclude = [
+    ".git",
+    "__pycache__",
+    "*.egg-info",
+    "dist",
+    "build",
+    "fork",
+    # Environnement virtuel uv/venv (session-36, 2026-09-16) : un exclude
+    # personnalisé remplace entièrement la liste par défaut de ruff (qui
+    # exclut .venv nativement) au lieu de l'étendre — sans cette entrée,
+    # `ruff check .`/`ruff format --check .` scannent aussi les paquets
+    # tiers installés dans .venv/ (des milliers de faux positifs, constaté
+    # à l'ouverture de ce point : 21419 erreurs de lint et 1122 fichiers de
+    # mise en forme en trop, tous dans .venv/). Bug latent depuis l'origine
+    # de ce fichier, jamais manifesté avant cette session faute de .venv
+    # présent au moment des vérifications précédentes.
+    ".venv",
+    # Répertoires vendorisés (docs/architecture.md §1/§2.5/§8) : code source
+    # tiers gardé pour référence/compilation, pas du code GCM à faire évoluer
+    # ni à corriger stylistiquement ici (session-35, 2026-09-14 — ces deux
+    # répertoires n'étaient pas exclus et gonflaient artificiellement le
+    # compte d'erreurs `make lint` de 194 (SSH-Studio) + 2 (gtk-frdp) lignes
+    # qui ne concernaient pas le dépôt GCM lui-même).
+    "SSH-Studio",
+    "gtk-frdp",
+]
+
+[tool.ruff.lint]
+# E/W  : pycodestyle  (style PEP 8)
+# F    : pyflakes     (erreurs logiques)
+# I    : isort        (ordre des imports)
+# D    : pydocstyle   (docstrings — style Google via convention = "google")
+# UP   : pyupgrade    (syntaxe Python moderne)
+# B    : flake8-bugbear (pièges courants)
+# C4   : flake8-comprehensions
+# SIM  : flake8-simplify
+select = ["E", "W", "F", "I", "D", "UP", "B", "C4", "SIM"]
+
+ignore = [
+    # D2xx — flexibilité sur la mise en forme
+    "D200", "D202", "D205", "D212",
+    # E501 géré par line-length
+    "E501",
+    # B006 — listes mutables comme valeur par défaut (héritage upstream)
+    "B006",
+    # W291/W293 — espaces en fin de ligne (géré par trailing-whitespace pre-commit)
+  
+    # SIM117 — nested with (Python < 3.10 compat)
+    "SIM117",
+    # UP007 — X | Y union types (garder Optional[] pour compat)
+    "UP007",
+    # D415 — première ligne de docstring sans ponctuation finale (style existant)
+    "D415",
+    # C408 — dict() au lieu de {} (lisibilité intentionnelle avec kwargs nommés)
+    "C408",
+    # SIM105 — contextlib.suppress (optionnel, trop verbeux pour du code existant)
+    "SIM105",
+    # ── Violations héritage gnome_connection_manager.py (code upstream) ──────
+    # UP031 — printf-style % formatting (massivement utilisé dans l'original)
+    "UP031",
+    # E711 — comparaisons avec None/True/False (style upstream)
+    "E711",
+    # E721 — comparaison de type avec == (style upstream)
+    "E721",
+    # E722 — bare except (nombreux dans l'upstream)
+    "E722",
+    # SIM115 — open() sans context manager (code héritage)
+    "SIM115",
+    # SIM102 — if imbriqués collapsibles (lisibilité préférable)
+    "SIM102",
+    # SIM101 — isinstance() dupliqué
+    "SIM101",
+    # SIM108 — ternaire
+    "SIM108",
+    # B015 — comparaison inutile
+    "B015",
+    # B023 — variable de boucle dans lambda/closure (upstream)
+    "B023",
+    # F821 — undefined-name (noms GTK/GLib résolus à l'exécution, pas statiquement)
+    "F821",
+    # E402 — imports non en tête de fichier (guards try/except pour GTK)
+    "E402",
+    # F841 — variables locales non utilisées (upstream)
+    "F841",
+]
+
+# Style de docstrings : Google
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+# isort : compatibilité black
+[tool.ruff.lint.isort]
+force-single-line = false
+known-first-party = ["gnome_connection_manager", "gcm4_core"]
+
+[tool.ruff.lint.per-file-ignores]
+"urlregex.py" = ["W605"]
+
+[tool.ruff.format]
+# Formatage compatible black
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+docstring-code-format = true
+
+# ─── Black ───────────────────────────────────────────────────────────────────
+[tool.black]
+line-length = 99
+target-version = ["py310", "py311", "py312", "py313"]
+
+# ─── Pytest ──────────────────────────────────────────────────────────────────
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]

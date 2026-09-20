@@ -1,0 +1,13 @@
+#!@PYTHON@
+
+import os
+import sys
+
+pkgdatadir = '@pkgdatadir@'
+
+if pkgdatadir not in sys.path:
+    sys.path.insert(0, pkgdatadir)
+
+if __name__ == '__main__':
+    from ssh_studio import main
+    sys.exit(main.main())

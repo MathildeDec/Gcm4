@@ -1,0 +1,78 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $TestConnectionDialog: Adw.Window {
+  title: _("Test Connection");
+  modal: true;
+  resizable: true;
+  default-width: 800;
+  default-height: 600;
+
+  Box main_box {
+    orientation: vertical;
+
+    [header]
+    Adw.HeaderBar {
+      [title]
+      Label {
+        label: _("Test Connection");
+        css-classes: ["title"];
+      }
+    }
+
+    Adw.ViewStack stack {
+      vexpand: true;
+
+      Adw.ViewStackPage {
+        name: "loading";
+        child: Adw.StatusPage loading_page {
+          title: _("Testing Connection");
+          description: _("Running SSH command...");
+          icon-name: "network-workgroup-symbolic";
+
+          Spinner spinner {
+            spinning: true;
+            margin-top: 12;
+          }
+        };
+      }
+
+      Adw.ViewStackPage {
+        name: "results";
+        child: Box {
+          orientation: vertical;
+          margin-start: 24;
+          margin-end: 24;
+          margin-top: 24;
+          margin-bottom: 24;
+          spacing: 24;
+
+          Label status_title {
+            css-classes: ["title-1"];
+            halign: start;
+          }
+
+          Label status_description {
+            css-classes: ["body"];
+            halign: start;
+            wrap: true;
+            selectable: true;
+          }
+
+          ScrolledWindow output_scrolled {
+            vexpand: true;
+            hexpand: true;
+            css-classes: ["frame"];
+
+            TextView output_text {
+              monospace: true;
+              editable: false;
+              wrap-mode: word_char;
+              css-classes: ["code"];
+            }
+          }
+        };
+      }
+    }
+  }
+}

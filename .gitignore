@@ -1,0 +1,21 @@
+# Environnement virtuel (uv) — voir bootstrap-dev.sh / pyproject.toml
+.venv/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# Caches d'outils
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+
+# Paquets générés (make deb/rpm/opensuse) — répertoire d'install temporaire
+# (TMPINSTALLDIR) est sous /tmp, hors du dépôt, rien à ignorer ici pour lui
+*.deb
+*.rpm
+
+# Configuration utilisateur locale (jamais dans le dépôt)
+.gcm/

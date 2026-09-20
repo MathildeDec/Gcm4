@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# Environnements virtuels
+.venv/
+venv/
+
+# Données locales (clés hôte pinnées — jamais à committer)
+*.gcm/
+vnc_host_keys.json
+
+# Éditeurs
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store

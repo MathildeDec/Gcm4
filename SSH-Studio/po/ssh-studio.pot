@@ -1,0 +1,437 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the ssh-studio package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ssh-studio\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-09-05 00:28+0330\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/main.py:99
+msgid "Failed to load SSH config"
+msgstr ""
+
+#: src/main.py:195
+msgid "Error"
+msgstr ""
+
+#: src/main.py:206
+msgid "Info"
+msgstr ""
+
+#: src/ui/host_editor.py:426 data/ui/host_editor.blp:132
+msgid "Choose Identity File"
+msgstr ""
+
+#: src/ui/host_editor.py:431 src/ui/main_window.py:328
+#: src/ui/preferences_dialog.py:41 src/ui/preferences_dialog.py:58
+msgid "Cancel"
+msgstr ""
+
+#: src/ui/host_editor.py:432 src/ui/main_window.py:327
+#: src/ui/preferences_dialog.py:42
+msgid "Open"
+msgstr ""
+
+#: src/ui/host_editor.py:435
+msgid "SSH Keys"
+msgstr ""
+
+#: src/ui/host_editor.py:466
+msgid "No host selected"
+msgstr ""
+
+#: src/ui/host_editor.py:499
+msgid "No hostname or pattern available"
+msgstr ""
+
+#: src/ui/host_editor.py:508
+msgid "Failed to access display"
+msgstr ""
+
+#: src/ui/host_editor.py:599
+msgid "Host name (patterns) is required."
+msgstr ""
+
+#: src/ui/host_editor.py:606
+msgid "Port must be between 1 and 65535."
+msgstr ""
+
+#: src/ui/host_editor.py:608
+msgid "Port must be numeric."
+msgstr ""
+
+#: src/ui/host_editor.py:619
+msgid "Custom option key cannot be empty."
+msgstr ""
+
+#: src/ui/host_editor.py:722
+msgid "Test Connection"
+msgstr ""
+
+#: src/ui/host_editor.py:727
+msgid "Close"
+msgstr ""
+
+#: src/ui/host_editor.py:738
+msgid "Running SSH command..."
+msgstr ""
+
+#: src/ui/host_editor.py:761
+msgid "Error: No hostname or pattern available to test."
+msgstr ""
+
+#: src/ui/host_editor.py:818
+msgid "Connection OK"
+msgstr ""
+
+#: src/ui/host_editor.py:833
+msgid "Connection timed out"
+msgstr ""
+
+#: src/ui/host_editor.py:834
+msgid " "
+msgstr ""
+
+#: src/ui/host_list.py:53
+msgid "Host"
+msgstr ""
+
+#: src/ui/host_list.py:54
+msgid "HostName"
+msgstr ""
+
+#: src/ui/host_list.py:55
+msgid "User"
+msgstr ""
+
+#: src/ui/host_list.py:56 data/ui/host_editor.blp:109
+msgid "Port"
+msgstr ""
+
+#: src/ui/host_list.py:57
+msgid "Identity"
+msgstr ""
+
+#: src/ui/host_list.py:172
+msgid ", "
+msgstr ""
+
+#: src/ui/host_list.py:175
+msgid "No"
+msgstr ""
+
+#: src/ui/host_list.py:176
+msgid "Yes"
+msgstr ""
+
+#: src/ui/main_window.py:249
+msgid "Configuration saved successfully"
+msgstr ""
+
+#: src/ui/main_window.py:279
+msgid "Host added"
+msgstr ""
+
+#: src/ui/main_window.py:289
+msgid "Host deleted"
+msgstr ""
+
+#: src/ui/main_window.py:324
+msgid "Open SSH Config File"
+msgstr ""
+
+#: src/ui/main_window.py:399
+msgid "Preferences saved"
+msgstr ""
+
+#: src/ui/main_window.py:409 data/ui/main_window.blp:5
+#: data/ui/main_window.blp:17
+msgid "SSH-Studio"
+msgstr ""
+
+#: src/ui/main_window.py:412
+msgid "Made with ❤️ by Mahyar Darvishi"
+msgstr ""
+
+#: src/ui/main_window.py:416
+msgid "© 2025 Mahyar Darvishi"
+msgstr ""
+
+#: src/ui/main_window.py:418
+msgid "A native Python + GTK application for managing SSH configuration files"
+msgstr ""
+
+#: src/ui/preferences_dialog.py:26 data/ui/main_window.blp:125
+#: data/ui/preferences_dialog.blp:13
+msgid "Preferences"
+msgstr ""
+
+#: src/ui/preferences_dialog.py:37
+msgid "Choose SSH Config File"
+msgstr ""
+
+#: src/ui/preferences_dialog.py:54 data/ui/preferences_dialog.blp:68
+msgid "Choose Backup Directory"
+msgstr ""
+
+#: src/ui/preferences_dialog.py:59
+msgid "Select"
+msgstr ""
+
+#: data/ui/host_editor.blp:46
+msgid "Revert"
+msgstr ""
+
+#: data/ui/host_editor.blp:55
+msgid "Save"
+msgstr ""
+
+#: data/ui/host_editor.blp:77
+msgid "Settings"
+msgstr ""
+
+#: data/ui/host_editor.blp:84
+msgid "Connection"
+msgstr ""
+
+#: data/ui/host_editor.blp:87
+msgid "Host pattern"
+msgstr ""
+
+#: data/ui/host_editor.blp:101
+msgid "Host name"
+msgstr ""
+
+#: data/ui/host_editor.blp:105
+msgid "Username"
+msgstr ""
+
+#: data/ui/host_editor.blp:124
+msgid "Authentication"
+msgstr ""
+
+#: data/ui/host_editor.blp:127
+msgid "Identity file"
+msgstr ""
+
+#: data/ui/host_editor.blp:137
+msgid "Forward agent"
+msgstr ""
+
+#: data/ui/host_editor.blp:148
+msgid "Actions"
+msgstr ""
+
+#: data/ui/host_editor.blp:151
+msgid "Copy SSH command"
+msgstr ""
+
+#: data/ui/host_editor.blp:153
+msgid "Copies the resolved SSH command to the clipboard"
+msgstr ""
+
+#: data/ui/host_editor.blp:157
+msgid "Test connection"
+msgstr ""
+
+#: data/ui/host_editor.blp:159
+msgid "Runs a quick non-interactive SSH check"
+msgstr ""
+
+#: data/ui/host_editor.blp:167 data/ui/host_editor.blp:174
+msgid "Networking"
+msgstr ""
+
+#: data/ui/host_editor.blp:177
+msgid "ProxyJump"
+msgstr ""
+
+#: data/ui/host_editor.blp:181
+msgid "ProxyCommand"
+msgstr ""
+
+#: data/ui/host_editor.blp:185
+msgid "Local Forward"
+msgstr ""
+
+#: data/ui/host_editor.blp:189
+msgid "Remote Forward"
+msgstr ""
+
+#: data/ui/host_editor.blp:197 data/ui/host_editor.blp:204
+msgid "Advanced"
+msgstr ""
+
+#: data/ui/host_editor.blp:205
+msgid ""
+"Add custom SSH configuration options not available in the standard fields"
+msgstr ""
+
+#: data/ui/host_editor.blp:208
+msgid "Custom Options"
+msgstr ""
+
+#: data/ui/host_editor.blp:212
+msgid "Add Custom Option"
+msgstr ""
+
+#: data/ui/host_editor.blp:229
+msgid "Raw/Diff"
+msgstr ""
+
+#: data/ui/host_editor.blp:236
+msgid "Raw Configuration"
+msgstr ""
+
+#: data/ui/host_editor.blp:237
+msgid "Edit the raw SSH configuration and see changes highlighted"
+msgstr ""
+
+#: data/ui/host_list.blp:25 data/ui/main_window.blp:84
+#: data/ui/main_window.blp:88
+msgid "SSH Hosts"
+msgstr ""
+
+#: data/ui/host_list.blp:34
+msgid "0 hosts"
+msgstr ""
+
+#: data/ui/main_window.blp:27
+msgid "Search (Ctrl+F)"
+msgstr ""
+
+#: data/ui/main_window.blp:37
+msgid "Add Host"
+msgstr ""
+
+#: data/ui/main_window.blp:47
+msgid "Duplicate Host"
+msgstr ""
+
+#: data/ui/main_window.blp:57
+msgid "Delete Host"
+msgstr ""
+
+#: data/ui/main_window.blp:96 data/ui/main_window.blp:100
+msgid "Host Editor"
+msgstr ""
+
+#: data/ui/main_window.blp:115
+msgid "Open Config"
+msgstr ""
+
+#: data/ui/main_window.blp:120
+msgid "Reload"
+msgstr ""
+
+#: data/ui/main_window.blp:132
+msgid "About"
+msgstr ""
+
+#: data/ui/preferences_dialog.blp:20
+msgid "General"
+msgstr ""
+
+#: data/ui/preferences_dialog.blp:24
+msgid "Configuration"
+msgstr ""
+
+#: data/ui/preferences_dialog.blp:25
+msgid "SSH configuration file and backup settings"
+msgstr ""
+
+#: data/ui/preferences_dialog.blp:28
+msgid "SSH Config Path"
+msgstr ""
+
+#: data/ui/preferences_dialog.blp:29
+msgid "Path to your SSH configuration file"
+msgstr ""
+
+#: data/ui/preferences_dialog.blp:37
+msgid "~/.ssh/config"
+msgstr ""
+
+#: data/ui/preferences_dialog.blp:43
+msgid "Choose Config File"
+msgstr ""
+
+#: data/ui/preferences_dialog.blp:53
+msgid "Backup Directory"
+msgstr ""
+
+#: data/ui/preferences_dialog.blp:54
+msgid "Directory where backups are stored"
+msgstr ""
+
+#: data/ui/preferences_dialog.blp:62
+msgid "~/.ssh"
+msgstr ""
+
+#: data/ui/preferences_dialog.blp:78
+msgid "Enable Auto-Backup"
+msgstr ""
+
+#: data/ui/preferences_dialog.blp:79
+msgid "Automatically create backups before saving changes"
+msgstr ""
+
+#: data/ui/preferences_dialog.blp:91
+msgid "Editor"
+msgstr ""
+
+#: data/ui/preferences_dialog.blp:92
+msgid "Text editor appearance and behavior"
+msgstr ""
+
+#: data/ui/preferences_dialog.blp:95
+msgid "Font Size"
+msgstr ""
+
+#: data/ui/preferences_dialog.blp:96
+msgid "Size of text in the editor"
+msgstr ""
+
+#: data/ui/preferences_dialog.blp:106
+msgid "Wrap Long Lines in Raw Editor"
+msgstr ""
+
+#: data/ui/preferences_dialog.blp:107
+msgid "Wrap long lines in the raw configuration editor"
+msgstr ""
+
+#: data/ui/preferences_dialog.blp:119
+msgid "Appearance"
+msgstr ""
+
+#: data/ui/preferences_dialog.blp:120
+msgid "Visual appearance and theme settings"
+msgstr ""
+
+#: data/ui/preferences_dialog.blp:123
+msgid "Prefer Dark Theme"
+msgstr ""
+
+#: data/ui/preferences_dialog.blp:124
+msgid "Use dark theme when available"
+msgstr ""
+
+#: data/ui/host_list.blp:24
+msgid "Search hosts, hostnames, users, keys..."
+msgstr ""
+
+#: data/ui/host_list.blp:25
+msgid "Search across all SSH host configurations"
+msgstr ""
+

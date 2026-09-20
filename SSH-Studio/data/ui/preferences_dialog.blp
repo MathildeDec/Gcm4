@@ -1,0 +1,86 @@
+using Gtk 4.0;
+using Adw 1;
+
+Adjustment editor_font_adjustment {
+  lower: 9;
+  upper: 24;
+  step-increment: 1;
+  page-increment: 2;
+  value: 12;
+}
+
+template $SSHStudioPreferencesDialog: Adw.PreferencesDialog {
+  title: _("Preferences");
+
+  Adw.PreferencesPage {
+    title: _("General");
+    icon-name: "preferences-system-symbolic";
+
+    Adw.PreferencesGroup {
+      title: _("Configuration");
+      description: _("SSH configuration file and backup settings");
+
+      Adw.EntryRow config_path_entry {
+        title: _("SSH Config Path");
+
+        [suffix]
+        Button config_path_button {
+          icon-name: "folder-open-symbolic";
+          tooltip-text: _("Choose Config File");
+
+          styles [
+            "flat",
+          ]
+        }
+      }
+
+      Adw.EntryRow backup_dir_entry {
+        title: _("Backup Directory");
+
+        [suffix]
+        Button backup_dir_button {
+          icon-name: "folder-open-symbolic";
+          tooltip-text: _("Choose Backup Directory");
+
+          styles [
+            "flat",
+          ]
+        }
+      }
+
+      Adw.SwitchRow auto_backup_switch {
+        title: _("Enable Auto-Backup");
+        subtitle: _("Automatically create backups before saving changes");
+        active: true;
+      }
+    }
+
+    Adw.PreferencesGroup {
+      title: _("Editor");
+      description: _("Text editor appearance and behavior");
+
+      Adw.SpinRow editor_font_spin {
+        title: _("Font Size");
+        adjustment: editor_font_adjustment;
+        digits: 0;
+      }
+
+      Adw.SwitchRow raw_wrap_switch {
+        title: _("Wrap Long Lines in Raw Editor");
+        subtitle: _("Wrap long lines in the raw configuration editor");
+        active: false;
+      }
+    }
+
+    Adw.PreferencesGroup {
+      title: _("Appearance");
+      description: _("Visual appearance and theme settings");
+
+      Adw.SwitchRow dark_theme_switch {
+        title: _("Prefer Dark Theme");
+        subtitle: _("Use dark theme when available");
+        active: false;
+      }
+    }
+  }
+}

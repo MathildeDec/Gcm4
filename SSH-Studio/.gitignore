@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+.python-version
+
+# Virtual envs
+.venv/
+venv/
+env/
+
+# Editors/OS
+.vscode/
+.idea/
+.DS_Store
+.gnome-builder/
+
+# Meson/Ninja build artifacts
+build/
+builddir/
+build-*/
+meson-logs/
+meson-private/
+compile_commands.json
+
+# Local run/output
+dist/
+run/
+
+# Tests/tools caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# i18n compiled catalogs
+po/**/*.mo
+
+
+# Flatpak/Flatpak Builder
+.flatpak-builder/
+repo/
+app/
+*.flatpak
+*.flatpakref
