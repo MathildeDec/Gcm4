@@ -381,3 +381,37 @@ Pour les changements importants, ouvrez d’abord une issue.
 ## Licence
 
 [GPLv3](https://www.gnu.org/licenses/gpl-3.0.html)
+
+
+---
+
+## Écosystème Gcm4 — bibliothèques asynchrones
+
+Gcm4 s'appuie sur deux bibliothèques asynchrones dédiées, développées en parallèle :
+
+### AsyncVnc2 — client VNC asynchrone
+
+- **Dépôt :** [MathildeDec/AsyncVnc4](https://github.com/MathildeDec/AsyncVnc4)
+- **Rôle :** Client RFB/VNC pur Python (23 patches, 50 tests), consommé par le plugin `pluginvnc2`
+- **Annonce :** [Gcm4 #102](https://github.com/MathildeDec/Gcm4/issues/102)
+- **Liaison plugin :** [Gcm4 #104](https://github.com/MathildeDec/Gcm4/issues/104)
+
+### AsyncRdp — client RDP asynchrone
+
+- **Dépôt :** [MathildeDec/AsyncRdp4](https://github.com/MathildeDec/AsyncRdp4)
+- **Rôle :** Binding asyncio sur libfreerdp3 via cffi (122 tests), destiné à remplacer GtkFrdp
+- **Annonce :** [Gcm4 #103](https://github.com/MathildeDec/Gcm4/issues/103)
+- **Liaison plugin :** [Gcm4 #105](https://github.com/MathildeDec/Gcm4/issues/105)
+
+### Roadmap d'intégration
+
+La roadmap coordonnée des trois dépôts est dans [Gcm4 #106](https://github.com/MathildeDec/Gcm4/issues/106), avec un tableau de bord dans [Gcm4 #107](https://github.com/MathildeDec/Gcm4/issues/107).
+
+| Phase | Objectif | Issues clés |
+|-------|----------|-------------|
+| 1 | Stabilisation bibliothèques | AsyncVnc4 #22, #34 · AsyncRdp4 #36 |
+| 2 | Intégration plugins Gcm4 | Gcm4 #104, #105, #71 |
+| 3 | Tests serveurs réels | AsyncVnc4 #27-#32 · AsyncRdp4 #34, #37 |
+| 4 | Migration GTK4 + nettoyage | Gcm4 #97, #96, #98, #99 |
+
+Priorités unifiées (P1-P4) et tracks de travail parallèle (VNC / RDP / Gcm4) communs aux trois dépôts.
