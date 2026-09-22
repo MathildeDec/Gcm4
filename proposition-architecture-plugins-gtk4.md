@@ -139,8 +139,9 @@ choisir *sa* version GTK.
 
 ```python
 def _discover_plugin_modules(directory: Path, package: str | None, self_module_name: str):
-    for plugin_dir in sorted(p for p in directory.iterdir()
-                              if p.is_dir() and (p / "__init__.py").exists()):
+    for plugin_dir in sorted(
+        p for p in directory.iterdir() if p.is_dir() and (p / "__init__.py").exists()
+    ):
         module_name = plugin_dir.name
         # même convention qu'aujourd'hui pour gnome_connection_manager.py :
         # le dossier du plugin est ajouté à sys.path pour que ses fichiers

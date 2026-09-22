@@ -62,7 +62,9 @@ class CsvExportBatchPlugin(BatchPlugin):
         app = self.app
         logger.debug("CsvExportBatchPlugin.activate | open file chooser")
 
-        filename = show_open_dialog(parent=app.window, title=_("Export to CSV"), action=Gtk.FileChooserAction.SAVE)
+        filename = show_open_dialog(
+            parent=app.window, title=_("Export to CSV"), action=Gtk.FileChooserAction.SAVE
+        )
         if not filename:
             return
 

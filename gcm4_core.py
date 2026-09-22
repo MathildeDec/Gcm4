@@ -115,7 +115,9 @@ def _resolve_config_dir(argv: list[str], default_home: str) -> tuple[str, list[s
     args, remaining = parser.parse_known_args(argv)
     config_dir = args.config or os.path.join(default_home, ".gcm")
     resolved = os.path.abspath(os.path.expanduser(config_dir))
-    app_logger.debug(f"_resolve_config_dir() returning | config_dir={resolved!r} remaining={remaining!r}")
+    app_logger.debug(
+        f"_resolve_config_dir() returning | config_dir={resolved!r} remaining={remaining!r}"
+    )
     return resolved, remaining
 
 
@@ -210,13 +212,17 @@ def dep_install_hint(pkg_debian: str, pkg_fedora: str, pkg_arch: str | None = No
         ou un résumé Debian+Fedora si la distribution n'est pas reconnue
         (ou ``/etc/os-release`` illisible).
     """
-    app_logger.debug(f"dep_install_hint() called | pkg_debian={pkg_debian!r} pkg_fedora={pkg_fedora!r}")
+    app_logger.debug(
+        f"dep_install_hint() called | pkg_debian={pkg_debian!r} pkg_fedora={pkg_fedora!r}"
+    )
     try:
         with open("/etc/os-release") as _f:
             _rel = _f.read().lower()
     except OSError:
         _rel = ""
-    if any(x in _rel for x in ("ubuntu", "debian", "mint", "pop", "kali", "raspbian", "linuxmint")):
+    if any(
+        x in _rel for x in ("ubuntu", "debian", "mint", "pop", "kali", "raspbian", "linuxmint")
+    ):
         result = f"sudo apt install {pkg_debian}"
     elif any(x in _rel for x in ("fedora", "rhel", "centos", "rocky", "alma", "oracle")):
         result = f"sudo dnf install {pkg_fedora}"
@@ -475,7 +481,9 @@ def initialise_encyption_key(key_file: str) -> None:
         with os.fdopen(os.open(key_file, os.O_WRONLY | os.O_CREAT, 0o600), "w") as f:
             f.write(_enc_passwd)
     except Exception as exc:
-        app_logger.debug(f"initialise_encyption_key() raising | key_file={key_file!r} erreur={exc}")
+        app_logger.debug(
+            f"initialise_encyption_key() raising | key_file={key_file!r} erreur={exc}"
+        )
         raise RuntimeError(f"Error initialising key_file: {key_file}") from exc
     app_logger.debug("initialise_encyption_key() returning | clé générée et écrite")
 
@@ -589,7 +597,9 @@ def decrypt(passw: str, string: str, version: int = 0) -> str:
     Returns:
         str: Texte en clair, ou chaîne vide en cas d'erreur.
     """
-    app_logger.debug(f"decrypt() called | len(string)={len(string) if string else 0} version={version}")
+    app_logger.debug(
+        f"decrypt() called | len(string)={len(string) if string else 0} version={version}"
+    )
     try:
         s = decrypt_old(passw, string) if version == 0 else pyAES.decrypt(string, passw)
     except Exception:
@@ -657,7 +667,9 @@ def proto_default_port(proto: str, plugin_registry: PluginRegistry) -> str:
     app_logger.debug(f"proto_default_port() called | proto={proto!r}")
     plugin = plugin_registry.get(proto)
     if plugin is None or plugin.default_port is None:
-        app_logger.debug("proto_default_port() returning | vide (plugin absent ou sans port par défaut)")
+        app_logger.debug(
+            "proto_default_port() returning | vide (plugin absent ou sans port par défaut)"
+        )
         return ""
     result = str(plugin.default_port)
     app_logger.debug(f"proto_default_port() returning | result={result!r}")
@@ -679,7 +691,9 @@ def all_default_ports(plugin_registry: PluginRegistry) -> set[str]:
         set[str]: Ports par défaut (+ chaîne vide).
     """
     app_logger.debug("all_default_ports() called")
-    result = {str(p.default_port) for p in plugin_registry.all() if p.default_port is not None} | {""}
+    result = {str(p.default_port) for p in plugin_registry.all() if p.default_port is not None} | {
+        ""
+    }
     app_logger.debug(f"all_default_ports() returning | count={len(result)}")
     return result
 

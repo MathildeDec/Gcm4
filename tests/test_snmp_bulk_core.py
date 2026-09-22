@@ -93,7 +93,9 @@ class TestPushToDeviceUnknownVendor(unittest.TestCase):
             auth=snmp_core.SnmpAuth(version="v2c", community="public"),
             port=161,
         )
-        result = snmp_core.push_to_device(row, profile, "config", __import__("pathlib").Path("/tmp"))
+        result = snmp_core.push_to_device(
+            row, profile, "config", __import__("pathlib").Path("/tmp")
+        )
         self.assertEqual(result.status, snmp_core.STATUS_REJECTED)
 
 

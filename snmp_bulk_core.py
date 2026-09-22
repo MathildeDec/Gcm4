@@ -97,7 +97,9 @@ class SnmpAuth:
     priv_protocol: str = "AES"
     security_level: str = "auth_with_privacy"
 
-    def session_kwargs(self, host: str, port: int = 161, timeout: int = 5, retries: int = 2) -> dict:
+    def session_kwargs(
+        self, host: str, port: int = 161, timeout: int = 5, retries: int = 2
+    ) -> dict:
         """Paramètres pour ezsnmp.Session(...).
 
         Args:
@@ -179,7 +181,9 @@ class SnmpProfileStore:
                         auth_protocol=config.get(section, "auth_protocol", fallback="SHA"),
                         priv_password=config.get(section, "priv_password", fallback=None),
                         priv_protocol=config.get(section, "priv_protocol", fallback="AES"),
-                        security_level=config.get(section, "security_level", fallback="auth_with_privacy"),
+                        security_level=config.get(
+                            section, "security_level", fallback="auth_with_privacy"
+                        ),
                     ),
                     port=config.getint(section, "port", fallback=161),
                     timeout=config.getint(section, "timeout", fallback=5),
@@ -285,8 +289,14 @@ def load_inventory(csv_path: str | Path) -> list[InventoryRow]:
             ip = row.get("ip") or row.get("host") or ""
             profile_name = row.get("type") or row.get("profile") or ""
             if ip and profile_name:
-                vars_dict = {k: v for k, v in row.items() if k not in ("ip", "host", "type", "profile")}
-                rows.append(InventoryRow(line_no=line_no, ip=ip, profile_name=profile_name, variables=vars_dict))
+                vars_dict = {
+                    k: v for k, v in row.items() if k not in ("ip", "host", "type", "profile")
+                }
+                rows.append(
+                    InventoryRow(
+                        line_no=line_no, ip=ip, profile_name=profile_name, variables=vars_dict
+                    )
+                )
     return rows
 
 
@@ -483,7 +493,9 @@ class H3cComwareDriver(SnmpDriver):
         Returns:
             Tuple ``(ok, detail)``.
         """
-        logger.debug(f"H3cComwareDriver.push | host={host} server_ip={server_ip} filename={filename}")
+        logger.debug(
+            f"H3cComwareDriver.push | host={host} server_ip={server_ip} filename={filename}"
+        )
         t0 = time.time()
         idx = int(t0) % 2147483647 or 1
 
@@ -543,9 +555,15 @@ class H3cComwareDriver(SnmpDriver):
                             return True, "succès"
                         detail = f"état terminal non-succès (code={state})"
                         try:
-                            reason = session.get(f"{self.RESULT_BASE}.{self.FAIL_REASON_COL}.{match_row}")
+                            reason = session.get(
+                                f"{self.RESULT_BASE}.{self.FAIL_REASON_COL}.{match_row}"
+                            )
                             detail += f" — raison: {reason.value}"
-                        except (EasySNMPError, EasySNMPNoSuchObjectError, EasySNMPNoSuchInstanceError):
+                        except (
+                            EasySNMPError,
+                            EasySNMPNoSuchObjectError,
+                            EasySNMPNoSuchInstanceError,
+                        ):
                             pass
                         return False, detail
                 except (EasySNMPError, ValueError) as exc:
@@ -585,7 +603,9 @@ class CiscoConfigCopyDriver(SnmpDriver):
         Returns:
             Tuple ``(ok, detail)``.
         """
-        logger.debug(f"CiscoConfigCopyDriver.push | host={host} server_ip={server_ip} filename={filename}")
+        logger.debug(
+            f"CiscoConfigCopyDriver.push | host={host} server_ip={server_ip} filename={filename}"
+        )
         t0 = time.time()
         idx = int(t0) % 2147483647 or 1
 
@@ -675,7 +695,9 @@ class HuaweiVrpDriver(SnmpDriver):
         Returns:
             Tuple ``(ok, detail)``.
         """
-        logger.debug(f"HuaweiVrpDriver.push | host={host} server_ip={server_ip} filename={filename}")
+        logger.debug(
+            f"HuaweiVrpDriver.push | host={host} server_ip={server_ip} filename={filename}"
+        )
         t0 = time.time()
         idx = int(t0) % 2147483647 or 1
 
@@ -691,7 +713,9 @@ class HuaweiVrpDriver(SnmpDriver):
             oid_values.append((f"{self.BASE}.6.{idx}", username, "s"))
         if password:
             oid_values.append((f"{self.BASE}.7.{idx}", password, "s"))
-        oid_values.append((f"{self.BASE}.9.{idx}", "4", "i"))  # hwCfgOperateRowStatus = createAndGo
+        oid_values.append(
+            (f"{self.BASE}.9.{idx}", "4", "i")
+        )  # hwCfgOperateRowStatus = createAndGo
 
         ok, detail = self._set_multiple(host, oid_values)
         if not ok:
@@ -737,9 +761,15 @@ class HuaweiVrpDriver(SnmpDriver):
                             return True, "succès"
                         detail = f"état terminal non-succès (code brut={state})"
                         try:
-                            reason = session.get(f"{self.RESULT_BASE}.{self.FAIL_REASON_COL}.{match_row}")
+                            reason = session.get(
+                                f"{self.RESULT_BASE}.{self.FAIL_REASON_COL}.{match_row}"
+                            )
                             detail += f" — raison: {reason.value}"
-                        except (EasySNMPError, EasySNMPNoSuchObjectError, EasySNMPNoSuchInstanceError):
+                        except (
+                            EasySNMPError,
+                            EasySNMPNoSuchObjectError,
+                            EasySNMPNoSuchInstanceError,
+                        ):
                             pass
                         return False, detail
                 except (EasySNMPError, ValueError) as exc:
@@ -856,7 +886,9 @@ def run_bulk_push(
     Returns:
         Liste des ``PushResult`` de tous les envois effectués.
     """
-    logger.debug(f"run_bulk_push | n_rows={len(rows)} max_workers={max_workers} server_ip={server_ip}")
+    logger.debug(
+        f"run_bulk_push | n_rows={len(rows)} max_workers={max_workers} server_ip={server_ip}"
+    )
     if cancel_event is None:
         cancel_event = threading.Event()
 

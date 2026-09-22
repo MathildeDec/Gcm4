@@ -70,7 +70,9 @@ class CsvImportBatchPlugin(BatchPlugin):
         app = self.app
         logger.debug("CsvImportBatchPlugin.activate | open file chooser")
 
-        filename = show_open_dialog(parent=app.window, title=_("Import from CSV"), action=Gtk.FileChooserAction.OPEN)
+        filename = show_open_dialog(
+            parent=app.window, title=_("Import from CSV"), action=Gtk.FileChooserAction.OPEN
+        )
         if not filename:
             return
 

@@ -156,7 +156,8 @@ class SshConfigEditorDialog(GCMBase, Gtk.Dialog):
     ``is_tab``/``tab_key`` après construction, cf. ``SshPlugin.edit_ssh_config``) ::
 
         wMain.open_management_tab(
-            "ssh-config", _("Edit SSH config"),
+            "ssh-config",
+            _("Edit SSH config"),
             lambda: SshConfigEditorDialog(parent=wMain.window, show=False),
         )
     """
@@ -502,7 +503,9 @@ class SshConfigEditorDialog(GCMBase, Gtk.Dialog):
         # sélecteur Dynamic/Local/Remote) placé avant "Propriétés", qui contient
         # HostName et le reste du formulaire général.
         sub_notebook = Gtk.Notebook()
-        sub_notebook.append_page(self._build_port_forwarding_tab(), Gtk.Label(label=_("Redirection de port")))
+        sub_notebook.append_page(
+            self._build_port_forwarding_tab(), Gtk.Label(label=_("Redirection de port"))
+        )
         sub_notebook.append_page(form_scroller, Gtk.Label(label=_("Properties")))
 
         self._form_stack = Gtk.Stack()
@@ -589,8 +592,15 @@ class SshConfigEditorDialog(GCMBase, Gtk.Dialog):
         # Colonnes : Local, Host, Remote, valeur brute ssh_config (cachée), Type
         self._pf_store = Gtk.ListStore(str, str, str, str, str)
         self._pf_tree = Gtk.TreeView(model=self._pf_store)
-        for col_index, title in ((0, _("Local")), (1, _("Host")), (2, _("Remote")), (4, _("Type"))):
-            self._pf_tree.append_column(Gtk.TreeViewColumn(title, Gtk.CellRendererText(), text=col_index))
+        for col_index, title in (
+            (0, _("Local")),
+            (1, _("Host")),
+            (2, _("Remote")),
+            (4, _("Type")),
+        ):
+            self._pf_tree.append_column(
+                Gtk.TreeViewColumn(title, Gtk.CellRendererText(), text=col_index)
+            )
 
         sw = Gtk.ScrolledWindow()
         sw.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
@@ -663,7 +673,9 @@ class SshConfigEditorDialog(GCMBase, Gtk.Dialog):
         vbox.set_margin_top(8)
         vbox.set_margin_bottom(4)
 
-        info = Gtk.Label(label=_("Edit raw ssh_config — changes here override the Visual tab on Save."))
+        info = Gtk.Label(
+            label=_("Edit raw ssh_config — changes here override the Visual tab on Save.")
+        )
         info.set_xalign(0.0)
         info.set_line_wrap(True)
         vbox.pack_start(info, False, False, 0)
@@ -918,12 +930,16 @@ class SshConfigEditorDialog(GCMBase, Gtk.Dialog):
         self._parser = self._parsers[target]
         self._config = self._configs[target]
         self._sync_raw_from_model()
-        logger.debug(f"SshConfigEditorDialog._switch_raw_target | target={target} path={self._parser.config_path}")
+        logger.debug(
+            f"SshConfigEditorDialog._switch_raw_target | target={target} path={self._parser.config_path}"
+        )
 
     def _sync_raw_from_model(self) -> None:
         """Copie le contenu généré par le modèle dans la zone Raw."""
         content = self._config.generate_content()
-        logger.debug(f"SshConfigEditorDialog._sync_raw_from_model | content genere : {len(content)} caracteres")
+        logger.debug(
+            f"SshConfigEditorDialog._sync_raw_from_model | content genere : {len(content)} caracteres"
+        )
         self._raw_buffer.handler_block_by_func(self._on_raw_changed)
         self._raw_buffer.set_text(content)
         self._raw_buffer.handler_unblock_by_func(self._on_raw_changed)
@@ -1025,7 +1041,9 @@ class SshConfigEditorDialog(GCMBase, Gtk.Dialog):
         for target, parser in self._parsers.items():
             try:
                 parser.write()
-                logger.info(f"save | {_TARGET_LABELS[target]} written successfully | path={parser.config_path}")
+                logger.info(
+                    f"save | {_TARGET_LABELS[target]} written successfully | path={parser.config_path}"
+                )
             except OSError as exc:
                 msg = f"{_TARGET_LABELS[target]} : {exc}"
                 logger.error(f"save | write failed | target={target} exc={exc}")
@@ -1181,7 +1199,9 @@ class SshConfigEditorDialog(GCMBase, Gtk.Dialog):
             text=_("Remove host?"),
         )
         target_path = self._parsers[self._current_host_source].config_path
-        dlg.format_secondary_text(_("Remove «{alias}» from {path}?").format(alias=alias, path=target_path))
+        dlg.format_secondary_text(
+            _("Remove «{alias}» from {path}?").format(alias=alias, path=target_path)
+        )
         if run_dialog_sync(dlg) == Gtk.ResponseType.YES:
             self._configs[self._current_host_source].remove_host(self._current_host)
             self._current_host = None

@@ -86,7 +86,9 @@ class VirtualBoxPrefsTab:
 
         self._entry_user = Gtk.Entry()
         self._entry_user.set_text(getattr(conf, "VIRTUALBOX_DEFAULT_USER", "root") or "root")
-        self._entry_user.set_tooltip_text(_("Used as default user in the VirtualBox import dialog."))
+        self._entry_user.set_tooltip_text(
+            _("Used as default user in the VirtualBox import dialog.")
+        )
         row.pack_start(self._entry_user, True, True, 0)
         outer.pack_start(row, False, False, 0)
 
@@ -94,7 +96,9 @@ class VirtualBoxPrefsTab:
         help_lbl.set_xalign(0)
         help_lbl.set_line_wrap(True)
         help_lbl.set_markup(
-            _("<i>Applies only to the VirtualBox import plugin. Can still be overridden per import run.</i>")
+            _(
+                "<i>Applies only to the VirtualBox import plugin. Can still be overridden per import run.</i>"
+            )
         )
         outer.pack_start(help_lbl, False, False, 0)
 
@@ -213,13 +217,17 @@ def _virtualbox_fetch_hosts(uris, ssh_user, log_fn, progress_fn, proto_filter=No
             vbox_bin = vbox_bin.splitlines()[0].strip()
 
             vms_out = run(client, f"{vbox_bin} list vms")
-            running = set(re.findall(r'^"([^"]+)"', run(client, f"{vbox_bin} list runningvms"), re.MULTILINE))
+            running = set(
+                re.findall(r'^"([^"]+)"', run(client, f"{vbox_bin} list runningvms"), re.MULTILINE)
+            )
             vm_names = re.findall(r'^"([^"]+)"', vms_out, re.MULTILINE)
             log_fn(f"  {len(vm_names)} VM(s) trouvée(s)")
 
             # ── ARP noyau (fallback résolution IP) ────────────────────────────
             arp = {}
-            for line in run(client, "ip neigh show 2>/dev/null || arp -n 2>/dev/null").splitlines():
+            for line in run(
+                client, "ip neigh show 2>/dev/null || arp -n 2>/dev/null"
+            ).splitlines():
                 m = re.search(
                     r"(\d+\.\d+\.\d+\.\d+).*?([0-9a-f]{2}(?::[0-9a-f]{2}){5})",
                     line,
@@ -239,7 +247,9 @@ def _virtualbox_fetch_hosts(uris, ssh_user, log_fn, progress_fn, proto_filter=No
                 info = _virtualbox_parse_machinereadable(info_out)
 
                 is_windows = "windows" in info.get("ostype", "").lower() or bool(
-                    re.search(r"win|w(?:2k|2019|2022|2016|2012|srv|dc|server)", vm_name, re.IGNORECASE)
+                    re.search(
+                        r"win|w(?:2k|2019|2022|2016|2012|srv|dc|server)", vm_name, re.IGNORECASE
+                    )
                 )
                 vm_user = "Administrator" if is_windows else ssh_user
 
@@ -256,7 +266,9 @@ def _virtualbox_fetch_hosts(uris, ssh_user, log_fn, progress_fn, proto_filter=No
                 if not ip_addr:
                     mac_raw = info.get("macaddress1", "")
                     if mac_raw:
-                        mac = ":".join(mac_raw[i : i + 2] for i in range(0, len(mac_raw), 2)).lower()
+                        mac = ":".join(
+                            mac_raw[i : i + 2] for i in range(0, len(mac_raw), 2)
+                        ).lower()
                         ip_addr = combined.get(mac, "")
 
                 grp, short = hv_common.vm_name_split(vm_name)
@@ -265,7 +277,11 @@ def _virtualbox_fetch_hosts(uris, ssh_user, log_fn, progress_fn, proto_filter=No
                 # ── SSH : toujours via l'hôte (jamais direct) ─────────────────
                 if "ssh" in proto_filter:
                     if ip_addr:
-                        jump_flag = f"-J {hv_user}@{hv_host}:{hv_port}" if hv_port != 22 else f"-J {hv_user}@{hv_host}"
+                        jump_flag = (
+                            f"-J {hv_user}@{hv_host}:{hv_port}"
+                            if hv_port != 22
+                            else f"-J {hv_user}@{hv_host}"
+                        )
                         results.append(
                             {
                                 "name": short,
@@ -301,7 +317,9 @@ def _virtualbox_fetch_hosts(uris, ssh_user, log_fn, progress_fn, proto_filter=No
                                 "extra_params": post_cmd,
                             }
                         )
-                    log_fn(f"  + [{grp}] {short:28s}  {ip_addr or '(IP inconnue)':16s}  [{state}]  SSH")
+                    log_fn(
+                        f"  + [{grp}] {short:28s}  {ip_addr or '(IP inconnue)':16s}  [{state}]  SSH"
+                    )
                     added = True
 
                 # ── RDP : natif via VRDE (prioritaire, aucune IP requise) ─────
@@ -325,10 +343,14 @@ def _virtualbox_fetch_hosts(uris, ssh_user, log_fn, progress_fn, proto_filter=No
                                 "extra_params": "",
                             }
                         )
-                        log_fn(f"  + [{grp}] {short:28s}  VRDE {hv_host}:{vrde_port:5s}  [{state}]  RDP (VRDE)")
+                        log_fn(
+                            f"  + [{grp}] {short:28s}  VRDE {hv_host}:{vrde_port:5s}  [{state}]  RDP (VRDE)"
+                        )
                         added = True
                     elif ip_addr:
-                        log_fn(f"  ↳ VRDE désactivé pour {vm_name} — sondage RDP invité 3389 sur {ip_addr}…")
+                        log_fn(
+                            f"  ↳ VRDE désactivé pour {vm_name} — sondage RDP invité 3389 sur {ip_addr}…"
+                        )
                         if hv_common.check_port_open(client, run, ip_addr, 3389):
                             results.append(
                                 {
@@ -337,14 +359,18 @@ def _virtualbox_fetch_hosts(uris, ssh_user, log_fn, progress_fn, proto_filter=No
                                     "user": vm_user,
                                     "port": 3389,
                                     "password": "",
-                                    "description": (f"[{state}] {vm_name} — RDP invité (port 3389 confirmé ouvert)"),
+                                    "description": (
+                                        f"[{state}] {vm_name} — RDP invité (port 3389 confirmé ouvert)"
+                                    ),
                                     "group": f"{grp}/rdp" if grp else "rdp",
                                     "hypervisor": hv_host,
                                     "protocol": "rdp",
                                     "extra_params": "",
                                 }
                             )
-                            log_fn(f"  + [{grp}] {short:28s}  {ip_addr:16s}  [{state}]  RDP (invité) ✓")
+                            log_fn(
+                                f"  + [{grp}] {short:28s}  {ip_addr:16s}  [{state}]  RDP (invité) ✓"
+                            )
                             added = True
                         else:
                             log_fn(f"  ↳ port 3389 fermé sur {ip_addr} — RDP ignoré")
@@ -360,7 +386,9 @@ def _virtualbox_fetch_hosts(uris, ssh_user, log_fn, progress_fn, proto_filter=No
                                 "user": vm_user,
                                 "port": 5900,
                                 "password": "",
-                                "description": (f"[{state}] {vm_name} — VNC (port 5900 confirmé ouvert)"),
+                                "description": (
+                                    f"[{state}] {vm_name} — VNC (port 5900 confirmé ouvert)"
+                                ),
                                 "group": f"{grp}/vnc" if grp else "vnc",
                                 "hypervisor": hv_host,
                                 "protocol": "vnc",
@@ -478,7 +506,9 @@ class VirtualBoxImportDialog(GCMBase):
         cr_toggle = Gtk.CellRendererToggle()
         cr_toggle.connect("toggled", self._on_uri_toggled)
         tv_uri.append_column(Gtk.TreeViewColumn("", cr_toggle, active=0))
-        col_uri_txt = Gtk.TreeViewColumn(_("VirtualBox host (user@host[:port])"), Gtk.CellRendererText(), text=1)
+        col_uri_txt = Gtk.TreeViewColumn(
+            _("VirtualBox host (user@host[:port])"), Gtk.CellRendererText(), text=1
+        )
         col_uri_txt.set_expand(True)
         tv_uri.append_column(col_uri_txt)
         sw_uri = Gtk.ScrolledWindow()
@@ -509,14 +539,18 @@ class VirtualBoxImportDialog(GCMBase):
 
         proto_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
         self._chk_ssh = Gtk.CheckButton(
-            label=_("SSH  (ProxyJump -J via host when VM IP is known, otherwise host shell + -t ssh user@vm)")
+            label=_(
+                "SSH  (ProxyJump -J via host when VM IP is known, otherwise host shell + -t ssh user@vm)"
+            )
         )
         self._chk_ssh.set_active(True)
         self._chk_rdp = Gtk.CheckButton(
             label=_("RDP  (native VirtualBox VRDE if enabled, otherwise guest port 3389 probe)")
         )
         self._chk_rdp.set_active(True)
-        self._chk_vnc = Gtk.CheckButton(label=_("VNC  (probe port 5900 in the guest — off by default)"))
+        self._chk_vnc = Gtk.CheckButton(
+            label=_("VNC  (probe port 5900 in the guest — off by default)")
+        )
         self._chk_vnc.set_active(False)
         for chk in (self._chk_ssh, self._chk_rdp, self._chk_vnc):
             proto_box.pack_start(chk, False, False, 0)
@@ -564,7 +598,9 @@ class VirtualBoxImportDialog(GCMBase):
         self._lbl_summary.set_xalign(0)
         self._preview_box.pack_start(self._lbl_summary, False, False, 0)
 
-        self._chk_overwrite = Gtk.CheckButton(label=_("Overwrite existing connections with the same name and protocol"))
+        self._chk_overwrite = Gtk.CheckButton(
+            label=_("Overwrite existing connections with the same name and protocol")
+        )
         self._chk_overwrite.set_active(False)
         self._preview_box.pack_start(self._chk_overwrite, False, False, 0)
 
@@ -602,7 +638,9 @@ class VirtualBoxImportDialog(GCMBase):
         col_name.set_min_width(170)
         tv_prev.append_column(col_name)
 
-        col_grp = Gtk.TreeViewColumn(_("Group"), Gtk.CellRendererText(), text=self._COL_GROUP, foreground=self._COL_FG)
+        col_grp = Gtk.TreeViewColumn(
+            _("Group"), Gtk.CellRendererText(), text=self._COL_GROUP, foreground=self._COL_FG
+        )
         col_grp.set_min_width(90)
         tv_prev.append_column(col_grp)
 
@@ -619,7 +657,10 @@ class VirtualBoxImportDialog(GCMBase):
         tv_prev.append_column(col_state)
 
         col_exist = Gtk.TreeViewColumn(
-            _("Imported"), Gtk.CellRendererText(), text=self._COL_EXIST_LBL, foreground=self._COL_FG
+            _("Imported"),
+            Gtk.CellRendererText(),
+            text=self._COL_EXIST_LBL,
+            foreground=self._COL_FG,
         )
         col_exist.set_min_width(70)
         tv_prev.append_column(col_exist)
@@ -661,7 +702,11 @@ class VirtualBoxImportDialog(GCMBase):
         Returns:
             None: Met à jour `self._uri_store` en place.
         """
-        self._log(_("VirtualBox has no central registry (unlike virt-manager/dconf).\nAdd your hosts manually below."))
+        self._log(
+            _(
+                "VirtualBox has no central registry (unlike virt-manager/dconf).\nAdd your hosts manually below."
+            )
+        )
         self._uri_store.append([False, f"{self.default_user}@hyperviseur"])
 
     def _normalize_manual_uri(self, raw_target):
@@ -784,7 +829,11 @@ class VirtualBoxImportDialog(GCMBase):
                 existing = [row[1] for row in self._uri_store]
                 if pending_uri not in existing:
                     self._uri_store.append([True, pending_uri])
-                    self._log(_("Target added automatically: {pending_uri}").format(pending_uri=pending_uri))
+                    self._log(
+                        _("Target added automatically: {pending_uri}").format(
+                            pending_uri=pending_uri
+                        )
+                    )
                 self._entry_manual_uri.set_text("")
         uris = [row[1] for row in self._uri_store if row[0]]
         if not uris:
@@ -806,7 +855,9 @@ class VirtualBoxImportDialog(GCMBase):
 
         def worker():
             try:
-                results = _virtualbox_fetch_hosts(uris, user, self._log, self._set_progress, proto_filter)
+                results = _virtualbox_fetch_hosts(
+                    uris, user, self._log, self._set_progress, proto_filter
+                )
             except Exception as exc:
                 logger.exception(f"VirtualBoxImportDialog._on_scan_clicked | scan failed: {exc}")
                 self._log(_(f"Scan failed: {exc}"))
@@ -855,7 +906,9 @@ class VirtualBoxImportDialog(GCMBase):
                 n_exists += 1
             else:
                 n_new += 1
-            self._preview_store.append([selected, proto, name, grp, host, state_str, exists, exist_lbl, fg, idx])
+            self._preview_store.append(
+                [selected, proto, name, grp, host, state_str, exists, exist_lbl, fg, idx]
+            )
 
         total = len(host_dicts)
         self._lbl_summary.set_markup(
@@ -864,9 +917,13 @@ class VirtualBoxImportDialog(GCMBase):
             f"<span foreground='#888888'>{n_exists} déjà importée(s)</span>"
         )
         self._set_progress(1.0, f"{total} connexion(s) découverte(s)")
-        self._log(f"\nScan terminé — {total} connexion(s) : {n_new} nouvelle(s), {n_exists} déjà présente(s).")
+        self._log(
+            f"\nScan terminé — {total} connexion(s) : {n_new} nouvelle(s), {n_exists} déjà présente(s)."
+        )
         self._stack.set_visible_child_name("results")
-        logger.info(f"VirtualBoxImportDialog._show_preview | total={total} new={n_new} existing={n_exists}")
+        logger.info(
+            f"VirtualBoxImportDialog._show_preview | total={total} new={n_new} existing={n_exists}"
+        )
         self._btn_scan.set_label(_("🔄  Rescan"))
         self._btn_scan.set_sensitive(True)
         self._dlg.resize(820, 900)
@@ -909,7 +966,9 @@ class VirtualBoxImportDialog(GCMBase):
         self.on_done(to_import)
         logger.info(f"VirtualBoxImportDialog._on_import_clicked | imported={len(to_import)}")
         self._btn_import.set_label(_("✓ Imported"))
-        self._lbl_summary.set_markup(f"<b>{len(to_import)}</b> connexion(s) importée(s) avec succès.")
+        self._lbl_summary.set_markup(
+            f"<b>{len(to_import)}</b> connexion(s) importée(s) avec succès."
+        )
 
 
 # ══════════════════════════════════════════════════════════════════════

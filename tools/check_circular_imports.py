@@ -172,7 +172,9 @@ def main() -> int:
         int: 0 si aucun cycle trouvé, 1 sinon (pour le hook pre-commit).
     """
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--root", default=os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    parser.add_argument(
+        "--root", default=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    )
     args = parser.parse_args()
 
     modules = discover_local_modules(args.root)

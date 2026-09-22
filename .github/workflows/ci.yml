@@ -38,6 +38,12 @@ jobs:
         # quand il sera propre (issue de suivi).
         run: uv run ruff check .
 
+      - name: Format (ruff format --check)
+        # Parité NetCross : le job Qualité contrôle aussi le format.
+        # Les 26 fichiers historiquement non formatés ont été alignés
+        # (cf. issue de format) ; ce verrou empêche toute régression.
+        run: uv run ruff format --check .
+
       - name: Tests (pytest)
         # tests/test_gcm.py est exclu : ses stubs GTK/VTE sont incomplets
         # (AttributeError GObject.SignalFlags à la collection, depuis

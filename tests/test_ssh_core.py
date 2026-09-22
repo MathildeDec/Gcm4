@@ -171,7 +171,9 @@ class TestSSHConfig(unittest.TestCase):
         cfg = core.SSHConfig(file_path=Path("/tmp/does-not-matter"))
         cfg.original_lines = ["Host myserver", "    HostName 10.0.0.1"]
         cfg.add_host(
-            core.SSHHost(patterns=["myserver"], options=[core.SSHOption(key="HostName", value="10.0.0.1")])
+            core.SSHHost(
+                patterns=["myserver"], options=[core.SSHOption(key="HostName", value="10.0.0.1")]
+            )
         )
         self.assertFalse(cfg.is_dirty())
         cfg.hosts[0].set_option("HostName", "10.0.0.2")
@@ -208,7 +210,10 @@ class TestSSHConfigParser(unittest.TestCase):
         parser = core.SSHConfigParser(config_path=self.config_path)
         host = core.SSHHost(
             patterns=["myserver"],
-            options=[core.SSHOption(key="HostName", value="10.0.0.1"), core.SSHOption(key="Port", value="2222")],
+            options=[
+                core.SSHOption(key="HostName", value="10.0.0.1"),
+                core.SSHOption(key="Port", value="2222"),
+            ],
         )
         parser.config.add_host(host)
         parser.write()
@@ -223,7 +228,11 @@ class TestSSHConfigParser(unittest.TestCase):
         self.config_path.write_text("Host old\n    HostName 1.2.3.4\n", encoding="utf-8")
         parser = core.SSHConfigParser(config_path=self.config_path)
         parser.parse()
-        parser.config.add_host(core.SSHHost(patterns=["new"], options=[core.SSHOption(key="HostName", value="5.6.7.8")]))
+        parser.config.add_host(
+            core.SSHHost(
+                patterns=["new"], options=[core.SSHOption(key="HostName", value="5.6.7.8")]
+            )
+        )
         parser.write()
 
         backups = list(self.config_path.parent.glob(f"{self.config_path.name}.*.bak"))
