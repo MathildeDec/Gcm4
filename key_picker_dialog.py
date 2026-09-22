@@ -333,7 +333,9 @@ class KeyPickerDialog(Gtk.Dialog):
         paths: list[str] = []
         for it in iters:
             priv_path = self._store[it][1]
-            private = str(Path(priv_path).with_suffix("")) if priv_path.endswith(".pub") else priv_path
+            private = (
+                str(Path(priv_path).with_suffix("")) if priv_path.endswith(".pub") else priv_path
+            )
             paths.append(private)
         result = ", ".join(paths)
         logger.info(f"KeyPickerDialog | key-selected path(s)={result}")

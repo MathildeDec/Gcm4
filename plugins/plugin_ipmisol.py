@@ -135,7 +135,9 @@ class IpmiSolTab(Gtk.Box):
         self._lbl_status.set_text(_("Connecting…"))
         self._btn_connect.set_sensitive(False)
         self._btn_disconnect.set_sensitive(True)
-        vte_run(self._terminal, cmd[0], cmd[1:], extra_env={"IPMI_PASSWORD": self.host.password or ""})
+        vte_run(
+            self._terminal, cmd[0], cmd[1:], extra_env={"IPMI_PASSWORD": self.host.password or ""}
+        )
 
     def _on_disconnect(self, widget):
         """Termine la session SOL (SIGTERM + sol deactivate explicite)."""

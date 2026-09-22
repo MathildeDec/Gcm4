@@ -112,7 +112,9 @@ class ProxmoxPrefsTab:
         help_lbl.set_xalign(0)
         help_lbl.set_line_wrap(True)
         help_lbl.set_markup(
-            _("<i>Applies only to the Proxmox import plugin. Can still be overridden per import run.</i>")
+            _(
+                "<i>Applies only to the Proxmox import plugin. Can still be overridden per import run.</i>"
+            )
         )
         outer.pack_start(help_lbl, False, False, 0)
 
@@ -324,7 +326,11 @@ def _proxmox_fetch_hosts(uris, ssh_user, log_fn, progress_fn, proto_filter=None)
 
                 if "ssh" in proto_filter:
                     if ip_addr:
-                        jump_flag = f"-J {hv_user}@{hv_host}:{hv_port}" if hv_port != 22 else f"-J {hv_user}@{hv_host}"
+                        jump_flag = (
+                            f"-J {hv_user}@{hv_host}:{hv_port}"
+                            if hv_port != 22
+                            else f"-J {hv_user}@{hv_host}"
+                        )
                         results.append(
                             {
                                 "name": short,
@@ -361,7 +367,9 @@ def _proxmox_fetch_hosts(uris, ssh_user, log_fn, progress_fn, proto_filter=None)
                                 "extra_params": post_cmd,
                             }
                         )
-                    log_fn(f"  + [{grp}] {short:28s}  {ip_addr or '(IP inconnue)':16s}  [{state}]  SSH")
+                    log_fn(
+                        f"  + [{grp}] {short:28s}  {ip_addr or '(IP inconnue)':16s}  [{state}]  SSH"
+                    )
                     added = True
 
                 if "spice" in proto_filter:
@@ -390,7 +398,9 @@ def _proxmox_fetch_hosts(uris, ssh_user, log_fn, progress_fn, proto_filter=None)
                         log_fn(f"  + [{grp}] {short:28s}  VMID {vmid:>5s}  [{state}]  SPICE (qxl)")
                         added = True
                     else:
-                        log_fn(f"  ↳ SPICE ignoré pour {vm_name} : pas de vga qxl (vga='{vga_out.strip()}')")
+                        log_fn(
+                            f"  ↳ SPICE ignoré pour {vm_name} : pas de vga qxl (vga='{vga_out.strip()}')"
+                        )
 
                 if "rdp" in proto_filter and ip_addr:
                     log_fn(f"  ↳ Sondage RDP 3389 sur {ip_addr}…")
@@ -402,7 +412,9 @@ def _proxmox_fetch_hosts(uris, ssh_user, log_fn, progress_fn, proto_filter=None)
                                 "user": vm_user,
                                 "port": 3389,
                                 "password": "",
-                                "description": (f"[{state}] {vm_name} (VMID {vmid}) — RDP (port 3389 confirmé ouvert)"),
+                                "description": (
+                                    f"[{state}] {vm_name} (VMID {vmid}) — RDP (port 3389 confirmé ouvert)"
+                                ),
                                 "group": f"{grp}/rdp" if grp else "rdp",
                                 "hypervisor": hv_host,
                                 "protocol": "rdp",
@@ -424,7 +436,9 @@ def _proxmox_fetch_hosts(uris, ssh_user, log_fn, progress_fn, proto_filter=None)
                                 "user": vm_user,
                                 "port": 5900,
                                 "password": "",
-                                "description": (f"[{state}] {vm_name} (VMID {vmid}) — VNC (port 5900 confirmé ouvert)"),
+                                "description": (
+                                    f"[{state}] {vm_name} (VMID {vmid}) — VNC (port 5900 confirmé ouvert)"
+                                ),
                                 "group": f"{grp}/vnc" if grp else "vnc",
                                 "hypervisor": hv_host,
                                 "protocol": "vnc",
@@ -589,11 +603,15 @@ class ProxmoxImportDialog(GCMBase):
         )
         self._chk_spice.set_active(True)
         self._chk_rdp = Gtk.CheckButton(
-            label=_("RDP  (probe port 3389 from hypervisor via nc/nmap - skipped if port is closed)")
+            label=_(
+                "RDP  (probe port 3389 from hypervisor via nc/nmap - skipped if port is closed)"
+            )
         )
         self._chk_rdp.set_active(True)
         self._chk_vnc = Gtk.CheckButton(
-            label=_("VNC  (probe port 5900 from hypervisor via nc/nmap - skipped if port is closed)")
+            label=_(
+                "VNC  (probe port 5900 from hypervisor via nc/nmap - skipped if port is closed)"
+            )
         )
         self._chk_vnc.set_active(False)
         for chk in (self._chk_ssh, self._chk_spice, self._chk_rdp, self._chk_vnc):
@@ -644,7 +662,9 @@ class ProxmoxImportDialog(GCMBase):
         self._lbl_summary.set_xalign(0)
         self._preview_box.pack_start(self._lbl_summary, False, False, 0)
 
-        self._chk_overwrite = Gtk.CheckButton(label=_("Overwrite existing connections with the same name and protocol"))
+        self._chk_overwrite = Gtk.CheckButton(
+            label=_("Overwrite existing connections with the same name and protocol")
+        )
         self._chk_overwrite.set_active(False)
         self._preview_box.pack_start(self._chk_overwrite, False, False, 0)
 
@@ -715,7 +735,9 @@ class ProxmoxImportDialog(GCMBase):
     # ──────────────────────────────────────────────────────────────────────────
 
     def _populate_uris(self):
-        uris = [u for u in hv_common.libvirt_get_uris_from_dconf() if "+ssh://" in u and "/system" in u]
+        uris = [
+            u for u in hv_common.libvirt_get_uris_from_dconf() if "+ssh://" in u and "/system" in u
+        ]
         if not uris:
             self._log(_("No SSH URI found in dconf.\nEnter an IP/host below and click Add."))
             return
@@ -817,7 +839,9 @@ class ProxmoxImportDialog(GCMBase):
             existing = [row[1] for row in self._uri_store]
             if pending_uri not in existing:
                 self._uri_store.append([True, pending_uri])
-                self._log(_("Target added automatically: {pending_uri}").format(pending_uri=pending_uri))
+                self._log(
+                    _("Target added automatically: {pending_uri}").format(pending_uri=pending_uri)
+                )
             self._entry_manual_uri.set_text("")
         uris = [row[1] for row in self._uri_store if row[0]]
         if not uris:
@@ -841,7 +865,9 @@ class ProxmoxImportDialog(GCMBase):
 
         def worker():
             try:
-                results = _proxmox_fetch_hosts(uris, user, self._log, self._set_progress, proto_filter)
+                results = _proxmox_fetch_hosts(
+                    uris, user, self._log, self._set_progress, proto_filter
+                )
             except Exception as exc:
                 logger.exception(f"ProxmoxImportDialog._on_scan_clicked | scan failed: {exc}")
                 self._log(_(f"Scan failed: {exc}"))
@@ -880,7 +906,9 @@ class ProxmoxImportDialog(GCMBase):
                 n_exists += 1
             else:
                 n_new += 1
-            self._preview_store.append([selected, proto, name, grp, host, state_str, exists, exist_lbl, fg, idx])
+            self._preview_store.append(
+                [selected, proto, name, grp, host, state_str, exists, exist_lbl, fg, idx]
+            )
         total = len(host_dicts)
         self._lbl_summary.set_markup(
             f"<b>{total}</b> connexion(s) trouvée(s) — "
@@ -888,9 +916,13 @@ class ProxmoxImportDialog(GCMBase):
             f"<span foreground='#888888'>{n_exists} déjà importée(s)</span>"
         )
         self._set_progress(1.0, f"{total} connexion(s) découverte(s)")
-        self._log(f"\nScan Proxmox terminé — {total} connexion(s) : {n_new} nouvelle(s), {n_exists} déjà présente(s).")
+        self._log(
+            f"\nScan Proxmox terminé — {total} connexion(s) : {n_new} nouvelle(s), {n_exists} déjà présente(s)."
+        )
         self._stack.set_visible_child_name("results")
-        logger.info(f"ProxmoxImportDialog._show_preview | total={total} new={n_new} existing={n_exists}")
+        logger.info(
+            f"ProxmoxImportDialog._show_preview | total={total} new={n_new} existing={n_exists}"
+        )
         self._btn_scan.set_label(_("🔄  Rescan"))
         self._btn_scan.set_sensitive(True)
         if not self.is_tab:
@@ -924,7 +956,9 @@ class ProxmoxImportDialog(GCMBase):
         self.on_done(to_import)
         logger.info(f"ProxmoxImportDialog._on_import_clicked | imported={len(to_import)}")
         self._btn_import.set_label(_("✓ Imported"))
-        self._lbl_summary.set_markup(f"<b>{len(to_import)}</b> connexion(s) importée(s) avec succès.")
+        self._lbl_summary.set_markup(
+            f"<b>{len(to_import)}</b> connexion(s) importée(s) avec succès."
+        )
 
 
 # ══════════════════════════════════════════════════════════════════════

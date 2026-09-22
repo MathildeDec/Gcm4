@@ -4,6 +4,7 @@
 Usage (pre-commit) : appelé avec la liste des fichiers .po à vérifier.
 Exit 0 = tout OK, exit 1 = au moins une erreur.
 """
+
 import subprocess
 import sys
 

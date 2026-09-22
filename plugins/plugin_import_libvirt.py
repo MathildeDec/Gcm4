@@ -105,7 +105,9 @@ class LibvirtPrefsTab:
         help_lbl.set_xalign(0)
         help_lbl.set_line_wrap(True)
         help_lbl.set_markup(
-            _("<i>Applies only to the Libvirt import plugin. Can still be overridden per import run.</i>")
+            _(
+                "<i>Applies only to the Libvirt import plugin. Can still be overridden per import run.</i>"
+            )
         )
         outer.pack_start(help_lbl, False, False, 0)
 
@@ -178,7 +180,9 @@ def _libvirt_fetch_hosts(uris, ssh_user, log_fn, progress_fn, proto_filter=None)
         progress_fn(idx / total, f"Connexion à {uri}…")
         parsed = urlparse(uri)
         scheme = parsed.scheme
-        transport = scheme.split("+")[1] if "+" in scheme else ("tcp" if parsed.hostname else "local")
+        transport = (
+            scheme.split("+")[1] if "+" in scheme else ("tcp" if parsed.hostname else "local")
+        )
         hv_host = parsed.hostname or "localhost"
         hv_port = parsed.port or 22
         hv_user = parsed.username or "root"
@@ -189,12 +193,16 @@ def _libvirt_fetch_hosts(uris, ssh_user, log_fn, progress_fn, proto_filter=None)
         if client is None:
             continue
         try:
-            vm_names = [n for n in run(client, "virsh list --all --name").splitlines() if n.strip()]
+            vm_names = [
+                n for n in run(client, "virsh list --all --name").splitlines() if n.strip()
+            ]
             log_fn(f"  {len(vm_names)} VM(s) trouvée(s)")
 
             # ── ARP noyau ────────────────────────────────────────────────────
             arp = {}
-            for line in run(client, "ip neigh show 2>/dev/null || arp -n 2>/dev/null").splitlines():
+            for line in run(
+                client, "ip neigh show 2>/dev/null || arp -n 2>/dev/null"
+            ).splitlines():
                 m = re.search(
                     r"(\d+\.\d+\.\d+\.\d+).*?([0-9a-f]{2}(?::[0-9a-f]{2}){5})",
                     line,
@@ -314,7 +322,9 @@ def _libvirt_fetch_hosts(uris, ssh_user, log_fn, progress_fn, proto_filter=None)
                                 "extra_params": post_cmd,
                             }
                         )
-                    log_fn(f"  + [{grp}] {short:28s}  {ip_addr or '(IP inconnue)':16s}  [{state}]  SSH")
+                    log_fn(
+                        f"  + [{grp}] {short:28s}  {ip_addr or '(IP inconnue)':16s}  [{state}]  SSH"
+                    )
                     added = True
 
                 # ── SPICE : virt-viewer --connect libvirt URI (tunnel SSH auto) ─
@@ -339,7 +349,9 @@ def _libvirt_fetch_hosts(uris, ssh_user, log_fn, progress_fn, proto_filter=None)
                             "extra_params": f"--connect {lv_uri} {vm_name}",
                         }
                     )
-                    log_fn(f"  + [{grp}] {short:28s}  port SPICE {spice_port:>5s}  [{state}]  SPICE")
+                    log_fn(
+                        f"  + [{grp}] {short:28s}  port SPICE {spice_port:>5s}  [{state}]  SPICE"
+                    )
                     added = True
 
                 # ── RDP : seulement si port 3389 ouvert (sondé depuis l'HV) ──
@@ -353,7 +365,9 @@ def _libvirt_fetch_hosts(uris, ssh_user, log_fn, progress_fn, proto_filter=None)
                                 "user": vm_user,
                                 "port": 3389,
                                 "password": "",
-                                "description": (f"[{state}] {vm_name} — RDP (port 3389 confirmé ouvert)"),
+                                "description": (
+                                    f"[{state}] {vm_name} — RDP (port 3389 confirmé ouvert)"
+                                ),
                                 "group": f"{grp}/rdp" if grp else "rdp",
                                 "hypervisor": hv_host,
                                 "protocol": "rdp",
@@ -376,7 +390,9 @@ def _libvirt_fetch_hosts(uris, ssh_user, log_fn, progress_fn, proto_filter=None)
                                 "user": vm_user,
                                 "port": 5900,
                                 "password": "",
-                                "description": (f"[{state}] {vm_name} — VNC (port 5900 confirmé ouvert)"),
+                                "description": (
+                                    f"[{state}] {vm_name} — VNC (port 5900 confirmé ouvert)"
+                                ),
                                 "group": f"{grp}/vnc" if grp else "vnc",
                                 "hypervisor": hv_host,
                                 "protocol": "vnc",
@@ -539,15 +555,21 @@ class LibvirtImportDialog(GCMBase):
         )
         self._chk_ssh.set_active(True)
         self._chk_spice = Gtk.CheckButton(
-            label=_("SPICE  (virt-viewer --connect qemu+ssh://... vm - SSH tunnel handled automatically)")
+            label=_(
+                "SPICE  (virt-viewer --connect qemu+ssh://... vm - SSH tunnel handled automatically)"
+            )
         )
         self._chk_spice.set_active(True)
         self._chk_rdp = Gtk.CheckButton(
-            label=_("RDP  (probe port 3389 from hypervisor via nc/nmap - skipped if port is closed)")
+            label=_(
+                "RDP  (probe port 3389 from hypervisor via nc/nmap - skipped if port is closed)"
+            )
         )
         self._chk_rdp.set_active(True)
         self._chk_vnc = Gtk.CheckButton(
-            label=_("VNC  (probe port 5900 from hypervisor via nc/nmap - skipped if port is closed)")
+            label=_(
+                "VNC  (probe port 5900 from hypervisor via nc/nmap - skipped if port is closed)"
+            )
         )
         self._chk_vnc.set_active(False)
         for chk in (self._chk_ssh, self._chk_spice, self._chk_rdp, self._chk_vnc):
@@ -601,7 +623,9 @@ class LibvirtImportDialog(GCMBase):
         self._preview_box.pack_start(self._lbl_summary, False, False, 0)
 
         # Case « Écraser »
-        self._chk_overwrite = Gtk.CheckButton(label=_("Overwrite existing connections with the same name and protocol"))
+        self._chk_overwrite = Gtk.CheckButton(
+            label=_("Overwrite existing connections with the same name and protocol")
+        )
         self._chk_overwrite.set_active(False)
         self._preview_box.pack_start(self._chk_overwrite, False, False, 0)
 
@@ -752,7 +776,11 @@ class LibvirtImportDialog(GCMBase):
         """
         uris = hv_common.libvirt_get_uris_from_dconf()
         if not uris:
-            self._log(_("No URI found in dconf (virt-manager not configured?).\nAdd your URIs manually below."))
+            self._log(
+                _(
+                    "No URI found in dconf (virt-manager not configured?).\nAdd your URIs manually below."
+                )
+            )
             self._uri_store.append([True, "qemu+ssh://root@hyperviseur/system"])
             return
         for uri in uris:
@@ -896,7 +924,11 @@ class LibvirtImportDialog(GCMBase):
                 existing = [row[1] for row in self._uri_store]
                 if pending_uri not in existing:
                     self._uri_store.append([True, pending_uri])
-                    self._log(_("Target added automatically: {pending_uri}").format(pending_uri=pending_uri))
+                    self._log(
+                        _("Target added automatically: {pending_uri}").format(
+                            pending_uri=pending_uri
+                        )
+                    )
                 self._entry_manual_uri.set_text("")
         uris = [row[1] for row in self._uri_store if row[0]]
         if not uris:
@@ -920,7 +952,9 @@ class LibvirtImportDialog(GCMBase):
 
         def worker():
             try:
-                results = _libvirt_fetch_hosts(uris, user, self._log, self._set_progress, proto_filter)
+                results = _libvirt_fetch_hosts(
+                    uris, user, self._log, self._set_progress, proto_filter
+                )
             except Exception as exc:
                 logger.exception(f"LibvirtImportDialog._on_scan_clicked | scan failed: {exc}")
                 self._log(_(f"Scan failed: {exc}"))
@@ -993,9 +1027,13 @@ class LibvirtImportDialog(GCMBase):
             f"<span foreground='#888888'>{n_exists} déjà importée(s)</span>"
         )
         self._set_progress(1.0, f"{total} connexion(s) découverte(s)")
-        self._log(f"\nScan terminé — {total} connexion(s) : {n_new} nouvelle(s), {n_exists} déjà présente(s).")
+        self._log(
+            f"\nScan terminé — {total} connexion(s) : {n_new} nouvelle(s), {n_exists} déjà présente(s)."
+        )
         self._stack.set_visible_child_name("results")
-        logger.info(f"LibvirtImportDialog._show_preview | total={total} new={n_new} existing={n_exists}")
+        logger.info(
+            f"LibvirtImportDialog._show_preview | total={total} new={n_new} existing={n_exists}"
+        )
         # Réinitialiser le bouton Scanner
         self._btn_scan.set_label(_("🔄  Rescan"))
         self._btn_scan.set_sensitive(True)

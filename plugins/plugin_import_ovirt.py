@@ -206,7 +206,11 @@ def _parse_manual_route(manual, fallback_ip):
     manual = manual.strip()
     if manual.startswith("-J"):
         parts = manual.split()
-        target = parts[-1] if len(parts) > 1 and re.match(r"^\d+\.\d+\.\d+\.\d+$", parts[-1]) else fallback_ip
+        target = (
+            parts[-1]
+            if len(parts) > 1 and re.match(r"^\d+\.\d+\.\d+\.\d+$", parts[-1])
+            else fallback_ip
+        )
         jump_flag = " ".join(parts[:-1]) if target != parts[-1] else " ".join(parts)
         if not target:
             return None
@@ -217,7 +221,9 @@ def _parse_manual_route(manual, fallback_ip):
     return {"mode": "direct", "host": host, "extra_params": ""}
 
 
-def _ovirt_resolve_route(vm_name, ip_addr, engine_url, api_user, api_pass, verify_ssl, ssh_user, host_id, log_fn):
+def _ovirt_resolve_route(
+    vm_name, ip_addr, engine_url, api_user, api_pass, verify_ssl, ssh_user, host_id, log_fn
+):
     """Détermine comment atteindre une VM oVirt en SSH/RDP.
 
     Essaie dans l'ordre : (1) connexion TCP directe depuis GCM, (2) jump
@@ -257,8 +263,14 @@ def _ovirt_resolve_route(vm_name, ip_addr, engine_url, api_user, api_pass, verif
             try:
                 if hv_common.check_port_open(client, hv_common.libvirt_ssh_run, ip_addr, 22):
                     log_fn(f"  ↳ {vm_name} : jump proxy via le moteur OK")
-                    return {"mode": "jump", "host": ip_addr, "extra_params": f"-J {ssh_user}@{engine_host}"}
-                log_fn(f"  ↳ {vm_name} : moteur joignable en SSH mais VM injoignable depuis le moteur")
+                    return {
+                        "mode": "jump",
+                        "host": ip_addr,
+                        "extra_params": f"-J {ssh_user}@{engine_host}",
+                    }
+                log_fn(
+                    f"  ↳ {vm_name} : moteur joignable en SSH mais VM injoignable depuis le moteur"
+                )
             finally:
                 client.close()
         else:
@@ -273,8 +285,14 @@ def _ovirt_resolve_route(vm_name, ip_addr, engine_url, api_user, api_pass, verif
             try:
                 if hv_common.check_port_open(client, hv_common.libvirt_ssh_run, ip_addr, 22):
                     log_fn(f"  ↳ {vm_name} : jump proxy via l'hyperviseur OK")
-                    return {"mode": "jump", "host": ip_addr, "extra_params": f"-J {ssh_user}@{hv_addr}"}
-                log_fn(f"  ↳ {vm_name} : hyperviseur joignable en SSH mais VM injoignable depuis l'hyperviseur")
+                    return {
+                        "mode": "jump",
+                        "host": ip_addr,
+                        "extra_params": f"-J {ssh_user}@{hv_addr}",
+                    }
+                log_fn(
+                    f"  ↳ {vm_name} : hyperviseur joignable en SSH mais VM injoignable depuis l'hyperviseur"
+                )
             finally:
                 client.close()
         else:
@@ -288,7 +306,9 @@ def _ovirt_resolve_route(vm_name, ip_addr, engine_url, api_user, api_pass, verif
         return None
     route = _parse_manual_route(manual, ip_addr)
     if route:
-        log_fn(f"  ↳ {vm_name} : route manuelle retenue → {route['mode']} {route['host']} {route['extra_params']}")
+        log_fn(
+            f"  ↳ {vm_name} : route manuelle retenue → {route['mode']} {route['host']} {route['extra_params']}"
+        )
     return route
 
 
@@ -320,7 +340,9 @@ def _ovirt_probe_port_via_route(route, port, ssh_user, log_fn):
         client.close()
 
 
-def _ovirt_fetch_hosts(engine_url, username, password, verify_ssl, ssh_user, log_fn, progress_fn, proto_filter=None):
+def _ovirt_fetch_hosts(
+    engine_url, username, password, verify_ssl, ssh_user, log_fn, progress_fn, proto_filter=None
+):
     """Collecte les VMs depuis un moteur oVirt/RHV via son API REST.
 
     Pour chaque VM dont l'IP invité est connue, la joignabilité est
@@ -396,7 +418,15 @@ def _ovirt_fetch_hosts(engine_url, username, password, verify_ssl, ssh_user, log
 
         if ip_addr:
             route = _ovirt_resolve_route(
-                vm_name, ip_addr, engine_url, username, password, verify_ssl, ssh_user, host_id, log_fn
+                vm_name,
+                ip_addr,
+                engine_url,
+                username,
+                password,
+                verify_ssl,
+                ssh_user,
+                host_id,
+                log_fn,
             )
         else:
             log_fn(f"  ↳ {vm_name or vm.get('id', '?')} : IP inconnue (agent invité absent ?)")
@@ -408,7 +438,9 @@ def _ovirt_fetch_hosts(engine_url, username, password, verify_ssl, ssh_user, log
             continue
 
         route_desc = (
-            "connexion directe testée" if route["mode"] == "direct" else f"jump proxy ({route['extra_params']})"
+            "connexion directe testée"
+            if route["mode"] == "direct"
+            else f"jump proxy ({route['extra_params']})"
         )
 
         if "ssh" in proto_filter:
@@ -426,7 +458,9 @@ def _ovirt_fetch_hosts(engine_url, username, password, verify_ssl, ssh_user, log
                     "extra_params": route.get("extra_params", ""),
                 }
             )
-            log_fn(f"  + [{grp}] {short:28s}  {route['host']:16s}  [{state}]  SSH ({route['mode']})")
+            log_fn(
+                f"  + [{grp}] {short:28s}  {route['host']:16s}  [{state}]  SSH ({route['mode']})"
+            )
             added = True
 
         if "rdp" in proto_filter and is_windows:
@@ -446,7 +480,9 @@ def _ovirt_fetch_hosts(engine_url, username, password, verify_ssl, ssh_user, log
                         "extra_params": route.get("extra_params", ""),
                     }
                 )
-                log_fn(f"  + [{grp}] {short:28s}  {route['host']:16s}  [{state}]  RDP ({route['mode']}) ✓")
+                log_fn(
+                    f"  + [{grp}] {short:28s}  {route['host']:16s}  [{state}]  RDP ({route['mode']}) ✓"
+                )
                 added = True
             else:
                 log_fn(f"  ↳ port 3389 fermé/injoignable sur {route['host']} — RDP ignoré")
@@ -582,9 +618,13 @@ class OvirtImportDialog(GCMBase):
         self._scan_box.pack_start(lbl_proto, False, False, 4)
 
         proto_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
-        self._chk_ssh = Gtk.CheckButton(label=_("SSH  (direct — oVirt VMs are usually directly routable)"))
+        self._chk_ssh = Gtk.CheckButton(
+            label=_("SSH  (direct — oVirt VMs are usually directly routable)")
+        )
         self._chk_ssh.set_active(True)
-        self._chk_rdp = Gtk.CheckButton(label=_("RDP  (Windows guests only — port 3389 probed via the resolved route)"))
+        self._chk_rdp = Gtk.CheckButton(
+            label=_("RDP  (Windows guests only — port 3389 probed via the resolved route)")
+        )
         self._chk_rdp.set_active(True)
         for chk in (self._chk_ssh, self._chk_rdp):
             proto_box.pack_start(chk, False, False, 0)
@@ -644,7 +684,9 @@ class OvirtImportDialog(GCMBase):
         self._lbl_summary.set_xalign(0)
         self._preview_box.pack_start(self._lbl_summary, False, False, 0)
 
-        self._chk_overwrite = Gtk.CheckButton(label=_("Overwrite existing connections with the same name and protocol"))
+        self._chk_overwrite = Gtk.CheckButton(
+            label=_("Overwrite existing connections with the same name and protocol")
+        )
         self._chk_overwrite.set_active(False)
         self._preview_box.pack_start(self._chk_overwrite, False, False, 0)
 
@@ -682,7 +724,9 @@ class OvirtImportDialog(GCMBase):
         col_name.set_min_width(170)
         tv_prev.append_column(col_name)
 
-        col_grp = Gtk.TreeViewColumn(_("Group"), Gtk.CellRendererText(), text=self._COL_GROUP, foreground=self._COL_FG)
+        col_grp = Gtk.TreeViewColumn(
+            _("Group"), Gtk.CellRendererText(), text=self._COL_GROUP, foreground=self._COL_FG
+        )
         col_grp.set_min_width(90)
         tv_prev.append_column(col_grp)
 
@@ -699,7 +743,10 @@ class OvirtImportDialog(GCMBase):
         tv_prev.append_column(col_state)
 
         col_exist = Gtk.TreeViewColumn(
-            _("Imported"), Gtk.CellRendererText(), text=self._COL_EXIST_LBL, foreground=self._COL_FG
+            _("Imported"),
+            Gtk.CellRendererText(),
+            text=self._COL_EXIST_LBL,
+            foreground=self._COL_FG,
         )
         col_exist.set_min_width(70)
         tv_prev.append_column(col_exist)
@@ -808,7 +855,14 @@ class OvirtImportDialog(GCMBase):
         def worker():
             try:
                 results = _ovirt_fetch_hosts(
-                    engine_url, username, password, verify_ssl, ssh_user, self._log, self._set_progress, proto_filter
+                    engine_url,
+                    username,
+                    password,
+                    verify_ssl,
+                    ssh_user,
+                    self._log,
+                    self._set_progress,
+                    proto_filter,
                 )
             except Exception as exc:
                 logger.exception(f"OvirtImportDialog._on_scan_clicked | scan failed: {exc}")
@@ -858,7 +912,9 @@ class OvirtImportDialog(GCMBase):
                 n_exists += 1
             else:
                 n_new += 1
-            self._preview_store.append([selected, proto, name, grp, host, state_str, exists, exist_lbl, fg, idx])
+            self._preview_store.append(
+                [selected, proto, name, grp, host, state_str, exists, exist_lbl, fg, idx]
+            )
 
         total = len(host_dicts)
         self._lbl_summary.set_markup(
@@ -867,9 +923,13 @@ class OvirtImportDialog(GCMBase):
             f"<span foreground='#888888'>{n_exists} déjà importée(s)</span>"
         )
         self._set_progress(1.0, f"{total} connexion(s) découverte(s)")
-        self._log(f"\nScan terminé — {total} connexion(s) : {n_new} nouvelle(s), {n_exists} déjà présente(s).")
+        self._log(
+            f"\nScan terminé — {total} connexion(s) : {n_new} nouvelle(s), {n_exists} déjà présente(s)."
+        )
         self._stack.set_visible_child_name("results")
-        logger.info(f"OvirtImportDialog._show_preview | total={total} new={n_new} existing={n_exists}")
+        logger.info(
+            f"OvirtImportDialog._show_preview | total={total} new={n_new} existing={n_exists}"
+        )
         self._btn_scan.set_label(_("🔄  Rescan"))
         self._btn_scan.set_sensitive(True)
         self._dlg.resize(820, 900)
@@ -912,7 +972,9 @@ class OvirtImportDialog(GCMBase):
         self.on_done(to_import)
         logger.info(f"OvirtImportDialog._on_import_clicked | imported={len(to_import)}")
         self._btn_import.set_label(_("✓ Imported"))
-        self._lbl_summary.set_markup(f"<b>{len(to_import)}</b> connexion(s) importée(s) avec succès.")
+        self._lbl_summary.set_markup(
+            f"<b>{len(to_import)}</b> connexion(s) importée(s) avec succès."
+        )
 
 
 # ══════════════════════════════════════════════════════════════════════

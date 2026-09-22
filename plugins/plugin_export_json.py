@@ -62,7 +62,9 @@ class JsonExportBatchPlugin(BatchPlugin):
         app = self.app
         logger.debug("JsonExportBatchPlugin.activate | open file chooser")
 
-        filename = show_open_dialog(parent=app.window, title=_("Export to JSON"), action=Gtk.FileChooserAction.SAVE)
+        filename = show_open_dialog(
+            parent=app.window, title=_("Export to JSON"), action=Gtk.FileChooserAction.SAVE
+        )
         if not filename:
             return
 

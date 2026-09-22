@@ -41,7 +41,9 @@ def dep_install_hint(pkg_debian, pkg_fedora, pkg_arch=None):
             _rel = _f.read().lower()
     except OSError:
         _rel = ""
-    if any(x in _rel for x in ("ubuntu", "debian", "mint", "pop", "kali", "raspbian", "linuxmint")):
+    if any(
+        x in _rel for x in ("ubuntu", "debian", "mint", "pop", "kali", "raspbian", "linuxmint")
+    ):
         return f"sudo apt install {pkg_debian}"
     if any(x in _rel for x in ("fedora", "rhel", "centos", "rocky", "alma", "oracle")):
         return f"sudo dnf install {pkg_fedora}"

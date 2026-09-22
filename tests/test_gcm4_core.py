@@ -64,7 +64,9 @@ class TestResolveConfigDir(unittest.TestCase):
         config_dir, remaining = gcm4_core._resolve_config_dir([], "/home/alice")
         self.assertEqual(config_dir, os.path.join("/home/alice", ".gcm"))
         self.assertEqual(remaining, [])
-        config_dir, remaining = gcm4_core._resolve_config_dir(["--config", "/tmp/x", "grp/host"], "/home/alice")
+        config_dir, remaining = gcm4_core._resolve_config_dir(
+            ["--config", "/tmp/x", "grp/host"], "/home/alice"
+        )
         self.assertEqual(config_dir, "/tmp/x")
         self.assertEqual(remaining, ["grp/host"])
 
@@ -176,6 +178,7 @@ class TestEncryption(unittest.TestCase):
 
 class TestGetUsername(unittest.TestCase):
     """get_username() — couverture minimale (fonction déjà triviale)."""
+
     def test_reads_user_env(self):
         """USER (ou LOGNAME/USERNAME) est bien lu depuis l'environnement."""
         import unittest.mock as mock
@@ -385,7 +388,9 @@ class TestProtoDefaultPort(unittest.TestCase):
 
     def test_all_default_ports_includes_empty_and_known(self):
         """L'ensemble agrège tous les ports connus, plus la chaîne vide."""
-        registry = FakePluginRegistry({"ssh": FakePlugin(22), "rdp": FakePlugin(3389), "local": FakePlugin(None)})
+        registry = FakePluginRegistry(
+            {"ssh": FakePlugin(22), "rdp": FakePlugin(3389), "local": FakePlugin(None)}
+        )
         result = gcm4_core.all_default_ports(registry)
         self.assertEqual(result, {"22", "3389", ""})
 

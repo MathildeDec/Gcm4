@@ -103,7 +103,9 @@ _KEY_TYPES: list[str] = [
 _RSA_SIZES: list[str] = ["512", "1024", "2048", "4096", "8192", "16384"]
 
 # Noms de fichiers exclus du scan (onglets Private/Orphan)
-_EXCLUDED_NAMES: frozenset[str] = frozenset({"config", "known_hosts", "authorized_keys", "environment", "identity"})
+_EXCLUDED_NAMES: frozenset[str] = frozenset(
+    {"config", "known_hosts", "authorized_keys", "environment", "identity"}
+)
 
 # Types de clé reconnus dans known_hosts / authorized_keys
 _AUTH_KEY_TYPES: tuple[str, ...] = (
@@ -201,7 +203,9 @@ def _get_creation_datetime(path: Path) -> datetime | None:
         Un ``datetime`` ou None si indéterminable.
     """
     try:
-        result = subprocess.run(["stat", "-c", "%W", str(path)], capture_output=True, text=True, timeout=3)
+        result = subprocess.run(
+            ["stat", "-c", "%W", str(path)], capture_output=True, text=True, timeout=3
+        )
         if result.returncode == 0:
             raw = result.stdout.strip()
             if raw.isdigit() and int(raw) > 0:
@@ -225,7 +229,9 @@ def _parse_cert_info(cert_path: Path) -> dict[str, str | bool]:
     """
     default: dict[str, str | bool] = {"valid_str": "?", "expired": False, "signed_by": "?"}
     try:
-        result = subprocess.run(["ssh-keygen", "-L", "-f", str(cert_path)], capture_output=True, text=True, timeout=3)
+        result = subprocess.run(
+            ["ssh-keygen", "-L", "-f", str(cert_path)], capture_output=True, text=True, timeout=3
+        )
     except Exception as exc:
         logger.debug(f"_parse_cert_info | {cert_path} → {exc}")
         return default
@@ -247,7 +253,11 @@ def _parse_cert_info(cert_path: Path) -> dict[str, str | bool]:
         expired = to_dt < datetime.now()
     except ValueError:
         pass
-    return {"valid_str": _("until {end}").format(end=to_str), "expired": expired, "signed_by": signed_by}
+    return {
+        "valid_str": _("until {end}").format(end=to_str),
+        "expired": expired,
+        "signed_by": signed_by,
+    }
 
 
 def _fingerprint_from_line(key_line: str) -> str:
@@ -264,7 +274,9 @@ def _fingerprint_from_line(key_line: str) -> str:
         with tempfile.NamedTemporaryFile("w", suffix=".pub", delete=False) as tmp:
             tmp.write(key_line.strip() + "\n")
             tmp_path = tmp.name
-        result = subprocess.run(["ssh-keygen", "-lf", tmp_path], capture_output=True, text=True, timeout=3)
+        result = subprocess.run(
+            ["ssh-keygen", "-lf", tmp_path], capture_output=True, text=True, timeout=3
+        )
         if result.returncode == 0:
             parts = result.stdout.strip().split()
             return parts[1][:48] if len(parts) >= 2 else ""
@@ -671,7 +683,11 @@ class _GenerateKeyDialog(Gtk.Dialog):
         grid.attach(self._entry_pass, 1, 4, 1, 1)
 
         lbl_info = Gtk.Label()
-        lbl_info.set_markup("<small><i>" + _("Keys are saved in <b>~/.ssh/</b> with permissions 600.") + "</i></small>")
+        lbl_info.set_markup(
+            "<small><i>"
+            + _("Keys are saved in <b>~/.ssh/</b> with permissions 600.")
+            + "</i></small>"
+        )
         lbl_info.set_xalign(0.0)
         lbl_info.set_line_wrap(True)
         grid.attach(lbl_info, 0, 5, 2, 1)
@@ -679,7 +695,9 @@ class _GenerateKeyDialog(Gtk.Dialog):
         row = 6
         self._chk_sign = Gtk.CheckButton()
         if self._ca_available:
-            self._chk_sign.set_label(_("Sign with designated CA ({name})").format(name=self._ca_name))
+            self._chk_sign.set_label(
+                _("Sign with designated CA ({name})").format(name=self._ca_name)
+            )
             self._chk_sign.connect("toggled", self._on_sign_toggled)
             grid.attach(self._chk_sign, 0, row, 2, 1)
             row += 1
@@ -763,7 +781,9 @@ class _GenerateKeyDialog(Gtk.Dialog):
         }
         if self._ca_available and self._chk_sign.get_active():
             opts["sign_with_ca"] = True
-            opts["ca_identity"] = self._entry_identity.get_text().strip() or get_default_ssh_key_comment()
+            opts["ca_identity"] = (
+                self._entry_identity.get_text().strip() or get_default_ssh_key_comment()
+            )
             opts["ca_principals"] = self._entry_principals.get_text().strip() or getpass.getuser()
             opts["ca_validity"] = self._entry_validity.get_text().strip() or "+52w"
         return opts
@@ -822,7 +842,9 @@ class _AddAuthorizedKeyDialog(Gtk.Dialog):
 class _TestKnownHostsDialog(Gtk.Dialog):
     """Fenêtre de résultats du test « known hosts » (ssh_config / GCM vs known_hosts)."""
 
-    def __init__(self, parent: Gtk.Window, target_label: str, results: list[tuple[str, bool, str]]) -> None:
+    def __init__(
+        self, parent: Gtk.Window, target_label: str, results: list[tuple[str, bool, str]]
+    ) -> None:
         """Construit et affiche les résultats du test.
 
         Args:
@@ -868,7 +890,9 @@ class _TestKnownHostsDialog(Gtk.Dialog):
         col_found.set_sort_column_id(1)
         tree.append_column(col_found)
 
-        col_info = Gtk.TreeViewColumn(_("Info (matching known_hosts line)"), Gtk.CellRendererText(), text=2)
+        col_info = Gtk.TreeViewColumn(
+            _("Info (matching known_hosts line)"), Gtk.CellRendererText(), text=2
+        )
         col_info.set_expand(True)
         col_info.set_sort_column_id(2)
         tree.append_column(col_info)
@@ -988,7 +1012,11 @@ class _ChangePassphraseDialog(Gtk.Dialog):
         Returns:
             Tuple ``(old_passphrase, new_passphrase, confirm_passphrase)``.
         """
-        return self._entry_old.get_text(), self._entry_new.get_text(), self._entry_confirm.get_text()
+        return (
+            self._entry_old.get_text(),
+            self._entry_new.get_text(),
+            self._entry_confirm.get_text(),
+        )
 
 
 class _ViewPublicKeyDialog(Gtk.Dialog):
@@ -1063,7 +1091,8 @@ class SSHKeyManagerDialog(GCMBase, Gtk.Window):
     ``is_tab``/``tab_key`` après construction, cf. ``SshPlugin.manage_ssh_keys``) ::
 
         wMain.open_management_tab(
-            "sshkeys", _("SSH Key Manager"),
+            "sshkeys",
+            _("SSH Key Manager"),
             lambda: SSHKeyManagerDialog(parent=wMain.window, show=False),
         )
     """
@@ -1244,7 +1273,9 @@ class SSHKeyManagerDialog(GCMBase, Gtk.Window):
         btn_designate.connect("clicked", self._on_designate_ca)
 
         btn_import = Gtk.Button(label=_("⬆ Import CA"))
-        btn_import.set_tooltip_text(_("Import an external CA key pair into ~/.ssh/ and designate it"))
+        btn_import.set_tooltip_text(
+            _("Import an external CA key pair into ~/.ssh/ and designate it")
+        )
         btn_import.connect("clicked", self._on_import_ca)
 
         btn_delete = Gtk.Button(label=_("🗑 Delete CA"))
@@ -1284,19 +1315,27 @@ class SSHKeyManagerDialog(GCMBase, Gtk.Window):
         self._btn_copy.set_sensitive(False)
         self._btn_copy.connect("clicked", self._on_copy_public)
         self._btn_view = Gtk.Button(label=_("👁 View public key"))
-        self._btn_view.set_tooltip_text(_("Show the full public key content in a dedicated window"))
+        self._btn_view.set_tooltip_text(
+            _("Show the full public key content in a dedicated window")
+        )
         self._btn_view.set_sensitive(False)
         self._btn_view.connect("clicked", self._on_view_public_key)
         self._btn_rename = Gtk.Button(label=_("✎ Rename"))
-        self._btn_rename.set_tooltip_text(_("Rename this key (and its .pub / certificate, if any)"))
+        self._btn_rename.set_tooltip_text(
+            _("Rename this key (and its .pub / certificate, if any)")
+        )
         self._btn_rename.set_sensitive(False)
         self._btn_rename.connect("clicked", self._on_rename_key)
         self._btn_passphrase = Gtk.Button(label=_("🔒 Passphrase"))
-        self._btn_passphrase.set_tooltip_text(_("Change the passphrase of this private key (ssh-keygen -p)"))
+        self._btn_passphrase.set_tooltip_text(
+            _("Change the passphrase of this private key (ssh-keygen -p)")
+        )
         self._btn_passphrase.set_sensitive(False)
         self._btn_passphrase.connect("clicked", self._on_change_passphrase)
         self._btn_agent = Gtk.Button(label=_("🔑 Agent"))
-        self._btn_agent.set_tooltip_text(_("Load/unload this key in ssh-agent (ssh-add / ssh-add -d)"))
+        self._btn_agent.set_tooltip_text(
+            _("Load/unload this key in ssh-agent (ssh-add / ssh-add -d)")
+        )
         self._btn_agent.set_sensitive(False)
         self._btn_agent.connect("clicked", self._on_toggle_agent)
         self._btn_reveal = Gtk.Button(label=_("📂 Reveal"))
@@ -1327,7 +1366,9 @@ class SSHKeyManagerDialog(GCMBase, Gtk.Window):
         btn_kh_copy_fp = Gtk.Button(label=_("⎘ Copy fingerprint"))
         btn_kh_copy_fp.connect("clicked", self._on_copy_known_host_fingerprint)
         btn_kh_test = Gtk.Button(label=_("🧪 Test known hosts"))
-        btn_kh_test.set_tooltip_text(_("Check ~/.ssh/config (and GCM hosts, if wired in) against known_hosts"))
+        btn_kh_test.set_tooltip_text(
+            _("Check ~/.ssh/config (and GCM hosts, if wired in) against known_hosts")
+        )
         btn_kh_test.connect("clicked", self._on_test_known_hosts)
         btn_kh_delete = Gtk.Button(label=_("🗑 Delete"))
         btn_kh_delete.get_style_context().add_class("destructive-action")
@@ -1450,7 +1491,8 @@ class SSHKeyManagerDialog(GCMBase, Gtk.Window):
         col_lineno = Gtk.TreeViewColumn(_("#"))
         col_lineno.pack_start(renderer_lineno, True)
         col_lineno.set_cell_data_func(
-            renderer_lineno, lambda _c, cell, model, it, _d: cell.set_property("text", str(model[it][5]))
+            renderer_lineno,
+            lambda _c, cell, model, it, _d: cell.set_property("text", str(model[it][5])),
         )
         col_lineno.set_sort_column_id(5)
         col_lineno.set_min_width(40)
@@ -1472,7 +1514,8 @@ class SSHKeyManagerDialog(GCMBase, Gtk.Window):
         col_hashed = Gtk.TreeViewColumn(_("Hashed"))
         col_hashed.pack_start(renderer_hashed, True)
         col_hashed.set_cell_data_func(
-            renderer_hashed, lambda _c, cell, model, it, _d: cell.set_property("text", "✓" if model[it][3] else "")
+            renderer_hashed,
+            lambda _c, cell, model, it, _d: cell.set_property("text", "✓" if model[it][3] else ""),
         )
         col_hashed.set_sort_column_id(3)
         tree.append_column(col_hashed)
@@ -1547,7 +1590,11 @@ class SSHKeyManagerDialog(GCMBase, Gtk.Window):
             return
         self._remote_fs = fs
         self._lbl_target_status.set_markup(f"<b>{GLib.markup_escape_text(spec.display)}</b>")
-        self._notify(_("Connected to {t} — Known Hosts / Authorized Keys now read from there").format(t=spec.display))
+        self._notify(
+            _("Connected to {t} — Known Hosts / Authorized Keys now read from there").format(
+                t=spec.display
+            )
+        )
         logger.info(f"_on_connect_target | connected to {spec.display}")
         self._load_known_hosts()
         self._load_authorized_keys()
@@ -1576,7 +1623,9 @@ class SSHKeyManagerDialog(GCMBase, Gtk.Window):
             return
         priv_path = Path(priv)
         if not priv_path.exists():
-            logger.warning(f"_load_ca_config | CA introuvable, désignation ignorée | path={priv_path}")
+            logger.warning(
+                f"_load_ca_config | CA introuvable, désignation ignorée | path={priv_path}"
+            )
             return
         pub_path = priv_path.with_name(priv_path.name + ".pub")
         self._ca_priv_path = priv_path
@@ -1599,7 +1648,9 @@ class SSHKeyManagerDialog(GCMBase, Gtk.Window):
                 f"<i>{GLib.markup_escape_text(_('(none — keys are generated unsigned)'))}</i>"
             )
             return
-        fp, key_type = self._get_fingerprint_and_type(self._ca_pub_path if self._ca_pub_path else self._ca_priv_path)
+        fp, key_type = self._get_fingerprint_and_type(
+            self._ca_pub_path if self._ca_pub_path else self._ca_priv_path
+        )
         detail = f" — {key_type} {fp}" if fp else ""
         text = f"<b>{GLib.markup_escape_text(self._ca_priv_path.name)}</b>{GLib.markup_escape_text(detail)}"
         self._lbl_ca_status.set_markup(text)
@@ -1637,7 +1688,11 @@ class SSHKeyManagerDialog(GCMBase, Gtk.Window):
             return
         pub_path = priv_path.with_name(priv_path.name + ".pub")
         if not pub_path.exists():
-            self._notify(_("No matching .pub file found next to {name} — cannot use as CA").format(name=priv_path.name))
+            self._notify(
+                _("No matching .pub file found next to {name} — cannot use as CA").format(
+                    name=priv_path.name
+                )
+            )
             return
 
         self._ca_priv_path = priv_path
@@ -1672,12 +1727,18 @@ class SSHKeyManagerDialog(GCMBase, Gtk.Window):
         src = Path(filename)
         pub_src = src.with_name(src.name + ".pub")
         if not pub_src.exists():
-            self._notify(_("No matching .pub file found next to {name} — cannot import as CA").format(name=src.name))
+            self._notify(
+                _("No matching .pub file found next to {name} — cannot import as CA").format(
+                    name=src.name
+                )
+            )
             return
 
         dst = self._ssh_dir / src.name
         if dst.exists():
-            if not self._confirm(_("File {name} already exists in ~/.ssh/ — overwrite?").format(name=src.name)):
+            if not self._confirm(
+                _("File {name} already exists in ~/.ssh/ — overwrite?").format(name=src.name)
+            ):
                 return
 
         try:
@@ -1842,7 +1903,9 @@ class SSHKeyManagerDialog(GCMBase, Gtk.Window):
             Tuple (fingerprint, key_type) — chaînes vides si indéterminable.
         """
         try:
-            result = subprocess.run(["ssh-keygen", "-lf", str(path)], capture_output=True, text=True, timeout=3)
+            result = subprocess.run(
+                ["ssh-keygen", "-lf", str(path)], capture_output=True, text=True, timeout=3
+            )
             if result.returncode == 0:
                 parts = result.stdout.strip().split()
                 fingerprint = parts[1][:32] if len(parts) >= 2 else ""
@@ -1938,7 +2001,9 @@ class SSHKeyManagerDialog(GCMBase, Gtk.Window):
     def _on_generate(self, _widget: Gtk.Widget) -> None:
         """Ouvre le formulaire de génération et lance ssh-keygen."""
         ca_name = self._ca_priv_path.name if self._ca_priv_path else ""
-        dlg = _GenerateKeyDialog(parent=self._top_window(), ca_available=self.has_designated_ca(), ca_name=ca_name)
+        dlg = _GenerateKeyDialog(
+            parent=self._top_window(), ca_available=self.has_designated_ca(), ca_name=ca_name
+        )
         response = run_dialog_sync(dlg)
         opts: dict[str, str | int | bool] = dlg.get_options()
         dlg.destroy()
@@ -1973,13 +2038,47 @@ class SSHKeyManagerDialog(GCMBase, Gtk.Window):
 
             if key_type == "rsa":
                 size = int(opts.get("size") or 3072)
-                cmd = ["ssh-keygen", "-t", "rsa", "-b", str(size), "-f", str(key_path), "-N", passphrase, "-C", comment]
+                cmd = [
+                    "ssh-keygen",
+                    "-t",
+                    "rsa",
+                    "-b",
+                    str(size),
+                    "-f",
+                    str(key_path),
+                    "-N",
+                    passphrase,
+                    "-C",
+                    comment,
+                ]
             elif key_type == "ecdsa":
-                cmd = ["ssh-keygen", "-t", "ecdsa", "-f", str(key_path), "-N", passphrase, "-C", comment]
+                cmd = [
+                    "ssh-keygen",
+                    "-t",
+                    "ecdsa",
+                    "-f",
+                    str(key_path),
+                    "-N",
+                    passphrase,
+                    "-C",
+                    comment,
+                ]
             else:
-                cmd = ["ssh-keygen", "-t", "ed25519", "-f", str(key_path), "-N", passphrase, "-C", comment]
+                cmd = [
+                    "ssh-keygen",
+                    "-t",
+                    "ed25519",
+                    "-f",
+                    str(key_path),
+                    "-N",
+                    passphrase,
+                    "-C",
+                    comment,
+                ]
 
-            logger.info(f"SSHKeyManagerDialog._generate_key | type={key_type} name={final_name} path={key_path}")
+            logger.info(
+                f"SSHKeyManagerDialog._generate_key | type={key_type} name={final_name} path={key_path}"
+            )
             result = subprocess.run(cmd, capture_output=True, text=True, check=True)
             logger.debug(f"_generate_key | stdout={result.stdout.strip()}")
 
@@ -2004,7 +2103,9 @@ class SSHKeyManagerDialog(GCMBase, Gtk.Window):
             self._notify(_("Generation failed: {err}").format(err=str(exc)))
             logger.exception("_generate_key | unexpected error", exception=True)
 
-    def _sign_key_with_ca(self, key_path: Path, identity: str, principals: str, validity: str) -> None:
+    def _sign_key_with_ca(
+        self, key_path: Path, identity: str, principals: str, validity: str
+    ) -> None:
         """Signe la clé publique générée avec la CA désignée (produit ``<name>-cert.pub``).
 
         Note:
@@ -2039,7 +2140,11 @@ class SSHKeyManagerDialog(GCMBase, Gtk.Window):
         try:
             result = subprocess.run(cmd, input="", capture_output=True, text=True, timeout=15)
         except subprocess.TimeoutExpired:
-            self._notify(_("CA signing timed out — CA key may require a passphrase (unsupported non-interactively)"))
+            self._notify(
+                _(
+                    "CA signing timed out — CA key may require a passphrase (unsupported non-interactively)"
+                )
+            )
             logger.warning(f"_sign_key_with_ca | timeout signing {pub_path}")
             return
         except Exception as exc:
@@ -2048,9 +2153,15 @@ class SSHKeyManagerDialog(GCMBase, Gtk.Window):
             return
         if result.returncode != 0:
             self._notify(_("CA signing failed: {err}").format(err=result.stderr.strip()[:120]))
-            logger.error(f"_sign_key_with_ca | ssh-keygen -s failed | stderr={result.stderr.strip()}")
+            logger.error(
+                f"_sign_key_with_ca | ssh-keygen -s failed | stderr={result.stderr.strip()}"
+            )
             return
-        self._notify(_("Key signed by CA {ca} (identity={id})").format(ca=self._ca_priv_path.name, id=identity))
+        self._notify(
+            _("Key signed by CA {ca} (identity={id})").format(
+                ca=self._ca_priv_path.name, id=identity
+            )
+        )
         logger.info(f"_sign_key_with_ca | signed {pub_path} with CA {self._ca_priv_path}")
 
     def _on_import(self, _widget: Gtk.Widget) -> None:
@@ -2083,7 +2194,9 @@ class SSHKeyManagerDialog(GCMBase, Gtk.Window):
         dst = self._ssh_dir / src.name
 
         if dst.exists():
-            overwrite = self._confirm(_("File {name} already exists in ~/.ssh/ — overwrite?").format(name=src.name))
+            overwrite = self._confirm(
+                _("File {name} already exists in ~/.ssh/ — overwrite?").format(name=src.name)
+            )
             if not overwrite:
                 return
 
@@ -2203,7 +2316,9 @@ class SSHKeyManagerDialog(GCMBase, Gtk.Window):
                 cert_path = Path(priv_path_str + "-cert.pub")
                 new_cert = Path(str(new_priv) + "-cert.pub")
                 if cert_path.exists() and new_cert.exists():
-                    self._notify(_("A certificate named {name} already exists").format(name=new_cert.name))
+                    self._notify(
+                        _("A certificate named {name} already exists").format(name=new_cert.name)
+                    )
                     return
                 new_pub = new_priv.with_name(new_priv.name + ".pub")
                 if pub_path_str and Path(pub_path_str).exists() and new_pub.exists():
@@ -2259,8 +2374,12 @@ class SSHKeyManagerDialog(GCMBase, Gtk.Window):
             logger.error(f"_on_change_passphrase | {exc}")
             return
         if result.returncode != 0:
-            self._notify(_("Passphrase change failed: {err}").format(err=result.stderr.strip()[:120]))
-            logger.warning(f"_on_change_passphrase | ssh-keygen -p failed | stderr={result.stderr.strip()}")
+            self._notify(
+                _("Passphrase change failed: {err}").format(err=result.stderr.strip()[:120])
+            )
+            logger.warning(
+                f"_on_change_passphrase | ssh-keygen -p failed | stderr={result.stderr.strip()}"
+            )
             return
         self._notify(_("Passphrase changed for {name}").format(name=key["name"]))
         logger.info(f"_on_change_passphrase | changed passphrase for {key['name']}")
@@ -2275,14 +2394,18 @@ class SSHKeyManagerDialog(GCMBase, Gtk.Window):
             True si l'agent SSH est joignable et connaît ce fingerprint.
         """
         try:
-            fp_result = subprocess.run(["ssh-keygen", "-lf", str(pub_path)], capture_output=True, text=True, timeout=3)
+            fp_result = subprocess.run(
+                ["ssh-keygen", "-lf", str(pub_path)], capture_output=True, text=True, timeout=3
+            )
             if fp_result.returncode != 0:
                 return False
             parts = fp_result.stdout.strip().split()
             fingerprint = parts[1] if len(parts) >= 2 else ""
             if not fingerprint:
                 return False
-            agent_result = subprocess.run(["ssh-add", "-l"], capture_output=True, text=True, timeout=5)
+            agent_result = subprocess.run(
+                ["ssh-add", "-l"], capture_output=True, text=True, timeout=5
+            )
             if agent_result.returncode != 0:
                 return False
             return fingerprint in agent_result.stdout
@@ -2298,7 +2421,9 @@ class SSHKeyManagerDialog(GCMBase, Gtk.Window):
             return
         priv_path = Path(str(key["path"]))
         pub_path_str = str(key.get("pub") or "")
-        pub_path = Path(pub_path_str) if pub_path_str else priv_path.with_name(priv_path.name + ".pub")
+        pub_path = (
+            Path(pub_path_str) if pub_path_str else priv_path.with_name(priv_path.name + ".pub")
+        )
         if not pub_path.exists():
             self._notify(_("No public key available to identify this key in the agent"))
             return
@@ -2308,7 +2433,9 @@ class SSHKeyManagerDialog(GCMBase, Gtk.Window):
             if not self._confirm(_("Remove {name} from ssh-agent?").format(name=key["name"])):
                 return
             try:
-                result = subprocess.run(["ssh-add", "-d", str(pub_path)], capture_output=True, text=True, timeout=5)
+                result = subprocess.run(
+                    ["ssh-add", "-d", str(pub_path)], capture_output=True, text=True, timeout=5
+                )
             except Exception as exc:
                 self._notify(_("ssh-add failed: {err}").format(err=str(exc)))
                 logger.error(f"_on_toggle_agent | -d | {exc}")
@@ -2316,16 +2443,26 @@ class SSHKeyManagerDialog(GCMBase, Gtk.Window):
             if result.returncode == 0:
                 self._notify(_("Removed from ssh-agent"))
             else:
-                self._notify(_("Failed to remove from agent: {err}").format(err=result.stderr.strip()[:100]))
+                self._notify(
+                    _("Failed to remove from agent: {err}").format(err=result.stderr.strip()[:100])
+                )
         else:
             if not self._confirm(_("Add {name} to ssh-agent?").format(name=key["name"])):
                 return
             try:
                 result = subprocess.run(
-                    ["ssh-add", str(priv_path)], capture_output=True, text=True, timeout=10, stdin=subprocess.DEVNULL
+                    ["ssh-add", str(priv_path)],
+                    capture_output=True,
+                    text=True,
+                    timeout=10,
+                    stdin=subprocess.DEVNULL,
                 )
             except subprocess.TimeoutExpired:
-                self._notify(_("ssh-add timed out — the key may require a passphrase (no terminal available here)"))
+                self._notify(
+                    _(
+                        "ssh-add timed out — the key may require a passphrase (no terminal available here)"
+                    )
+                )
                 logger.warning(f"_on_toggle_agent | timeout adding {priv_path}")
                 return
             except Exception as exc:
@@ -2336,7 +2473,9 @@ class SSHKeyManagerDialog(GCMBase, Gtk.Window):
                 self._notify(_("Added to ssh-agent"))
             else:
                 self._notify(
-                    _("Failed to add to agent (passphrase required?): {err}").format(err=result.stderr.strip()[:100])
+                    _("Failed to add to agent (passphrase required?): {err}").format(
+                        err=result.stderr.strip()[:100]
+                    )
                 )
 
     # ------------------------------------------------------------------
@@ -2363,7 +2502,9 @@ class SSHKeyManagerDialog(GCMBase, Gtk.Window):
                     int(entry["lineno"]),
                 ]
             )
-        self._notify(_("{n} known_hosts entries loaded from {t}").format(n=len(entries), t=fs.label()))
+        self._notify(
+            _("{n} known_hosts entries loaded from {t}").format(n=len(entries), t=fs.label())
+        )
         logger.debug(f"_load_known_hosts | target={fs.label()} n={len(entries)}")
 
     def _on_copy_known_host_fingerprint(self, _widget: Gtk.Widget) -> None:
@@ -2415,7 +2556,9 @@ class SSHKeyManagerDialog(GCMBase, Gtk.Window):
 
         hosts = self._collect_candidate_hosts()
         if not hosts:
-            self._notify(_("No candidate hosts found in ~/.ssh/config (and no GCM host list wired in)"))
+            self._notify(
+                _("No candidate hosts found in ~/.ssh/config (and no GCM host list wired in)")
+            )
             return
 
         tmp_path = ""
@@ -2427,7 +2570,10 @@ class SSHKeyManagerDialog(GCMBase, Gtk.Window):
             for host in hosts:
                 try:
                     res = subprocess.run(
-                        ["ssh-keygen", "-F", host, "-f", tmp_path], capture_output=True, text=True, timeout=3
+                        ["ssh-keygen", "-F", host, "-f", tmp_path],
+                        capture_output=True,
+                        text=True,
+                        timeout=3,
                     )
                     found = res.returncode == 0
                     info = res.stdout.strip() if found else ""
@@ -2445,7 +2591,9 @@ class SSHKeyManagerDialog(GCMBase, Gtk.Window):
             f"_on_test_known_hosts | target={fs.label()} tested={len(results)} found="
             f"{sum((1 for _h, found, _i in results if found))}",
         )
-        dlg = _TestKnownHostsDialog(parent=self._top_window(), target_label=fs.label(), results=results)
+        dlg = _TestKnownHostsDialog(
+            parent=self._top_window(), target_label=fs.label(), results=results
+        )
         run_dialog_sync(dlg)
         dlg.destroy()
 
@@ -2497,7 +2645,9 @@ class SSHKeyManagerDialog(GCMBase, Gtk.Window):
                     int(entry["lineno"]),
                 ]
             )
-        self._notify(_("{n} authorized_keys entries loaded from {t}").format(n=len(entries), t=fs.label()))
+        self._notify(
+            _("{n} authorized_keys entries loaded from {t}").format(n=len(entries), t=fs.label())
+        )
         logger.debug(f"_load_authorized_keys | target={fs.label()} n={len(entries)}")
 
     def _on_toggle_authorized_key(self, _renderer: Gtk.CellRendererToggle, path_str: str) -> None:
@@ -2512,7 +2662,9 @@ class SSHKeyManagerDialog(GCMBase, Gtk.Window):
         lineno = self._ak_store[it][5]
         currently_enabled = self._ak_store[it][0]
         action_label = _("Disable") if currently_enabled else _("Re-enable")
-        if not self._confirm(_("{action} this authorized_keys entry?").format(action=action_label)):
+        if not self._confirm(
+            _("{action} this authorized_keys entry?").format(action=action_label)
+        ):
             return
         fs = self._current_fs()
         if not self._confirm_root_write(fs, _("enable/disable an authorized_keys entry")):
@@ -2524,9 +2676,13 @@ class SSHKeyManagerDialog(GCMBase, Gtk.Window):
             self._load_authorized_keys()
             return
         line = lines[lineno - 1]
-        lines[lineno - 1] = line.strip()[1:].strip() if line.strip().startswith("#") else "# " + line
+        lines[lineno - 1] = (
+            line.strip()[1:].strip() if line.strip().startswith("#") else "# " + line
+        )
         ok = fs.write_text("authorized_keys", "\n".join(lines) + "\n", mode="600")
-        self._notify(_("authorized_keys entry updated") if ok else _("Failed to update authorized_keys"))
+        self._notify(
+            _("authorized_keys entry updated") if ok else _("Failed to update authorized_keys")
+        )
         self._load_authorized_keys()
 
     def _on_add_authorized_key(self, _widget: Gtk.Widget) -> None:
@@ -2558,7 +2714,9 @@ class SSHKeyManagerDialog(GCMBase, Gtk.Window):
             self._notify(_("No authorized_keys entry selected"))
             return
         raw_line = self._ak_store[it][4]
-        if not self._confirm(_("Remove this authorized_keys entry?\n<b>This cannot be undone.</b>")):
+        if not self._confirm(
+            _("Remove this authorized_keys entry?\n<b>This cannot be undone.</b>")
+        ):
             return
         fs = self._current_fs()
         if not self._confirm_root_write(fs, _("remove an authorized_keys entry")):
@@ -2572,7 +2730,9 @@ class SSHKeyManagerDialog(GCMBase, Gtk.Window):
             return
         new_content = "\n".join(new_lines) + ("\n" if new_lines else "")
         ok = fs.write_text("authorized_keys", new_content, mode="600")
-        self._notify(_("authorized_keys entry removed") if ok else _("Failed to update authorized_keys"))
+        self._notify(
+            _("authorized_keys entry removed") if ok else _("Failed to update authorized_keys")
+        )
         self._load_authorized_keys()
 
     # ------------------------------------------------------------------
@@ -2674,5 +2834,8 @@ class SSHKeyManagerDialog(GCMBase, Gtk.Window):
             _(
                 "⚠ You are about to {action} on the <b>root</b> account of {target}.\n"
                 "This can affect SSH access to the whole system.\n<b>Are you sure?</b>"
-            ).format(action=GLib.markup_escape_text(action_desc), target=GLib.markup_escape_text(fs.label()))
+            ).format(
+                action=GLib.markup_escape_text(action_desc),
+                target=GLib.markup_escape_text(fs.label()),
+            )
         )

@@ -166,7 +166,9 @@ def _upload_sftp(cfg: FileTransferConfig, filename: str, content: bytes) -> None
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     try:
-        client.connect(cfg.host, port=port, username=cfg.username, password=cfg.password, timeout=15)
+        client.connect(
+            cfg.host, port=port, username=cfg.username, password=cfg.password, timeout=15
+        )
         sftp = client.open_sftp()
         try:
             remote_path = cfg.remote_dir.rstrip("/") + "/" + filename
@@ -197,7 +199,9 @@ def _upload_ftp(cfg: FileTransferConfig, filename: str, content: bytes) -> None:
             try:
                 ftp.cwd(cfg.remote_dir)
             except ftplib.error_perm as exc:
-                raise RuntimeError(f"Dossier distant FTP inaccessible ({cfg.remote_dir}) : {exc}") from exc
+                raise RuntimeError(
+                    f"Dossier distant FTP inaccessible ({cfg.remote_dir}) : {exc}"
+                ) from exc
         ftp.storbinary(f"STOR {filename}", io.BytesIO(content))
 
 
@@ -217,7 +221,9 @@ _TFTP_TIMEOUT_S = 5.0
 _TFTP_MAX_RETRIES = 4
 
 
-def _tftp_upload(host: str, port: int, filename: str, content: bytes, timeout: float = _TFTP_TIMEOUT_S) -> None:
+def _tftp_upload(
+    host: str, port: int, filename: str, content: bytes, timeout: float = _TFTP_TIMEOUT_S
+) -> None:
     """Dépose *content* sous *filename* sur un serveur TFTP (mode octet).
 
     Args:
@@ -231,7 +237,13 @@ def _tftp_upload(host: str, port: int, filename: str, content: bytes, timeout: f
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.settimeout(timeout)
     try:
-        wrq = struct.pack("!H", _TFTP_OPCODE_WRQ) + filename.encode("ascii") + b"\x00" + b"octet" + b"\x00"
+        wrq = (
+            struct.pack("!H", _TFTP_OPCODE_WRQ)
+            + filename.encode("ascii")
+            + b"\x00"
+            + b"octet"
+            + b"\x00"
+        )
         server_addr = (host, port)
 
         def _send_and_wait_ack(packet: bytes, expected_block: int, addr) -> tuple:
@@ -245,7 +257,9 @@ def _tftp_upload(host: str, port: int, filename: str, content: bytes, timeout: f
             Returns:
                 Tuple ``(data, from_addr)`` de la réponse reçue.
             """
-            logger.debug(f"_tftp_upload._send_and_wait_ack | expected_block={expected_block} addr={addr}")
+            logger.debug(
+                f"_tftp_upload._send_and_wait_ack | expected_block={expected_block} addr={addr}"
+            )
             last_exc: Exception | None = None
             for _attempt in range(_TFTP_MAX_RETRIES):
                 sock.sendto(packet, addr)
@@ -256,7 +270,10 @@ def _tftp_upload(host: str, port: int, filename: str, content: bytes, timeout: f
                     continue
                 opcode = struct.unpack("!H", data[:2])[0]
                 if opcode == _TFTP_OPCODE_ERROR:
-                    _err_code, msg = struct.unpack("!H", data[2:4])[0], data[4:-1].decode("ascii", "replace")
+                    _err_code, msg = (
+                        struct.unpack("!H", data[2:4])[0],
+                        data[4:-1].decode("ascii", "replace"),
+                    )
                     raise RuntimeError(f"Erreur TFTP du serveur : {msg}")
                 if opcode == _TFTP_OPCODE_ACK:
                     block = struct.unpack("!H", data[2:4])[0]
@@ -301,7 +318,11 @@ def _upload_tftp(cfg: FileTransferConfig, filename: str, content: bytes) -> None
     """
     logger.debug(f"_upload_tftp | host={cfg.host} filename={filename}")
     port = cfg.port or cfg.default_port()
-    remote_name = (cfg.remote_dir.rstrip("/") + "/" + filename) if cfg.remote_dir not in ("", "/") else filename
+    remote_name = (
+        (cfg.remote_dir.rstrip("/") + "/" + filename)
+        if cfg.remote_dir not in ("", "/")
+        else filename
+    )
     _tftp_upload(cfg.host, port, remote_name, content)
 
 
@@ -318,7 +339,9 @@ def upload_config_file(cfg: FileTransferConfig, filename: str, content: str) -> 
         filename: Nom du fichier distant à créer.
         content: Contenu texte à écrire.
     """
-    logger.debug(f"upload_config_file | protocol={cfg.protocol} host={cfg.host} filename={filename}")
+    logger.debug(
+        f"upload_config_file | protocol={cfg.protocol} host={cfg.host} filename={filename}"
+    )
     data = content.encode("utf-8")
     if cfg.protocol == "sftp":
         _upload_sftp(cfg, filename, data)
@@ -413,7 +436,9 @@ class SnmpCredentials:
             return "authNoPriv"
         return "noAuthNoPriv"
 
-    def build_session_kwargs(self, hostname: str, port: int, timeout: float, retries: int = 2) -> dict:
+    def build_session_kwargs(
+        self, hostname: str, port: int, timeout: float, retries: int = 2
+    ) -> dict:
         """Construit les kwargs pour ``ezsnmp.Session(**kwargs)``.
 
         Args:
@@ -604,7 +629,9 @@ class Hh3cComwareDriver(SnmpPushDriver):
         Returns:
             Liste de tuples ``(oid, valeur, type_netsnmp)``.
         """
-        logger.debug(f"Hh3cComwareDriver.build_push_operations | index={index} protocol={protocol}")
+        logger.debug(
+            f"Hh3cComwareDriver.build_push_operations | index={index} protocol={protocol}"
+        )
         protocol_value = self._PROTOCOL_VALUES.get(protocol)
         if protocol_value is None:
             raise RuntimeError(f"Protocole non supporté par le driver H3C/Comware : {protocol!r}")
@@ -638,7 +665,9 @@ class Hh3cComwareDriver(SnmpPushDriver):
         try:
             items = session.walk(self._RESULT_OPT_INDEX)
         except Exception as exc:  # noqa: BLE001
-            return _PollOutcome(done=True, ok=False, detail=f"Erreur SNMP pendant le polling : {exc}")
+            return _PollOutcome(
+                done=True, ok=False, detail=f"Erreur SNMP pendant le polling : {exc}"
+            )
 
         for item in items:
             try:
@@ -668,21 +697,27 @@ class Hh3cComwareDriver(SnmpPushDriver):
             state_res = session.get(f"{self._RESULT_STATE}.{result_index}")
             fail_res = session.get(f"{self._RESULT_FAIL_REASON}.{result_index}")
         except Exception as exc:  # noqa: BLE001
-            return _PollOutcome(done=True, ok=False, detail=f"Erreur SNMP pendant la lecture du résultat : {exc}")
+            return _PollOutcome(
+                done=True, ok=False, detail=f"Erreur SNMP pendant la lecture du résultat : {exc}"
+            )
 
         state_item = state_res[0] if isinstance(state_res, (list, tuple)) else state_res
         fail_item = fail_res[0] if isinstance(fail_res, (list, tuple)) else fail_res
         try:
             state_val = int(state_item.value)
         except (TypeError, ValueError):
-            return _PollOutcome(done=True, ok=False, detail=f"Valeur d'état inattendue : {state_item.value!r}")
+            return _PollOutcome(
+                done=True, ok=False, detail=f"Valeur d'état inattendue : {state_item.value!r}"
+            )
         fail_reason = str(fail_item.value) if fail_item.value else ""
         label = self._STATE_LABELS.get(state_val, f"état inconnu ({state_val})")
         if state_val == self._STATE_IN_PROGRESS:
             return _PollOutcome(done=False, ok=False)
         if state_val == self._STATE_SUCCESS:
             return _PollOutcome(done=True, ok=True, detail=label)
-        return _PollOutcome(done=True, ok=False, detail=f"{label}" + (f" : {fail_reason}" if fail_reason else ""))
+        return _PollOutcome(
+            done=True, ok=False, detail=f"{label}" + (f" : {fail_reason}" if fail_reason else "")
+        )
 
 
 class CiscoConfigCopyDriver(SnmpPushDriver):
@@ -742,7 +777,9 @@ class CiscoConfigCopyDriver(SnmpPushDriver):
         Returns:
             Liste de tuples ``(oid, valeur, type_netsnmp)``.
         """
-        logger.debug(f"CiscoConfigCopyDriver.build_push_operations | index={index} protocol={protocol}")
+        logger.debug(
+            f"CiscoConfigCopyDriver.build_push_operations | index={index} protocol={protocol}"
+        )
         protocol_value = self._PROTOCOL_VALUES.get(protocol)
         if protocol_value is None:
             raise RuntimeError(f"Protocole non supporté par le driver Cisco : {protocol!r}")
@@ -775,21 +812,27 @@ class CiscoConfigCopyDriver(SnmpPushDriver):
             state_res = session.get(f"{self._STATE}.{row_index}")
             fail_res = session.get(f"{self._FAIL_CAUSE}.{row_index}")
         except Exception as exc:  # noqa: BLE001
-            return _PollOutcome(done=True, ok=False, detail=f"Erreur SNMP pendant le polling : {exc}")
+            return _PollOutcome(
+                done=True, ok=False, detail=f"Erreur SNMP pendant le polling : {exc}"
+            )
 
         state_item = state_res[0] if isinstance(state_res, (list, tuple)) else state_res
         fail_item = fail_res[0] if isinstance(fail_res, (list, tuple)) else fail_res
         try:
             state_val = int(state_item.value)
         except (TypeError, ValueError):
-            return _PollOutcome(done=True, ok=False, detail=f"Valeur d'état inattendue : {state_item.value!r}")
+            return _PollOutcome(
+                done=True, ok=False, detail=f"Valeur d'état inattendue : {state_item.value!r}"
+            )
         fail_cause = str(fail_item.value) if fail_item.value else ""
         label = self._STATE_LABELS.get(state_val, f"état inconnu ({state_val})")
         if state_val in (self._STATE_WAITING, self._STATE_RUNNING):
             return _PollOutcome(done=False, ok=False)
         if state_val == self._STATE_SUCCESSFUL:
             return _PollOutcome(done=True, ok=True, detail=label)
-        return _PollOutcome(done=True, ok=False, detail=f"{label}" + (f" : {fail_cause}" if fail_cause else ""))
+        return _PollOutcome(
+            done=True, ok=False, detail=f"{label}" + (f" : {fail_cause}" if fail_cause else "")
+        )
 
 
 SNMP_PUSH_DRIVERS: dict[str, SnmpPushDriver] = {
@@ -945,7 +988,9 @@ class SnmpProfileStore:
         with open(self.path, "w", encoding="utf-8") as fh:
             cp.write(fh)
         try:
-            self.path.chmod(0o600)  # contient des secrets (communauté, clés v3) : permissions restreintes
+            self.path.chmod(
+                0o600
+            )  # contient des secrets (communauté, clés v3) : permissions restreintes
         except OSError:
             pass
 
@@ -1010,7 +1055,9 @@ async def push_config_via_snmp(
     Returns:
         Le ``SnmpPushResult`` de l'envoi.
     """
-    logger.debug(f"push_config_via_snmp | ip={row.ip} vendor={profile.vendor_id} transfer_host={transfer.host}")
+    logger.debug(
+        f"push_config_via_snmp | ip={row.ip} vendor={profile.vendor_id} transfer_host={transfer.host}"
+    )
     started = time.monotonic()
     try:
         driver = profile.driver()
@@ -1043,7 +1090,9 @@ async def push_config_via_snmp(
     try:
         ezsnmp = _require_ezsnmp()
     except RuntimeError as exc:
-        return SnmpPushResult(row=row, status=STATUS_FAILED, error=str(exc), duration_s=time.monotonic() - started)
+        return SnmpPushResult(
+            row=row, status=STATUS_FAILED, error=str(exc), duration_s=time.monotonic() - started
+        )
 
     # Index de ligne unique pour cette exécution : horodatage (ms) tronqué +
     # numéro de ligne CSV, pour limiter le risque de collision entre hôtes
@@ -1056,7 +1105,9 @@ async def push_config_via_snmp(
     def _open_session():
         """Ouvre une session ``ezsnmp`` vers l'équipement de *row*."""
         logger.debug(f"push_config_via_snmp._open_session | ip={row.ip}")
-        kwargs = profile.snmp.build_session_kwargs(hostname=row.ip, port=profile.port, timeout=profile.timeout)
+        kwargs = profile.snmp.build_session_kwargs(
+            hostname=row.ip, port=profile.port, timeout=profile.timeout
+        )
         return ezsnmp.Session(**kwargs)
 
     def _trigger():
@@ -1101,7 +1152,9 @@ async def push_config_via_snmp(
                 row=row,
                 status=status,
                 output=outcome.detail if outcome.ok else "",
-                error="" if outcome.ok else (outcome.detail or "Échec du push SNMP (raison inconnue)."),
+                error=""
+                if outcome.ok
+                else (outcome.detail or "Échec du push SNMP (raison inconnue)."),
                 duration_s=time.monotonic() - started,
             )
         if time.monotonic() >= deadline:
@@ -1163,13 +1216,17 @@ async def run_bulk_snmp_push_async(
         logger.debug(f"run_bulk_snmp_push_async._work | ip={row.ip}")
         async with semaphore:
             if cancel_event is not None and cancel_event.is_set():
-                result = SnmpPushResult(row=row, status=STATUS_SKIPPED, error="Annulé avant envoi.")
+                result = SnmpPushResult(
+                    row=row, status=STATUS_SKIPPED, error="Annulé avant envoi."
+                )
                 result.log_path = _write_log(log_dir, row, result)
                 return result
 
             profile = profiles.get(row.profile_name)
             if profile is None:
-                result = SnmpPushResult(row=row, status=STATUS_FAILED, error=f"Profil inconnu : '{row.profile_name}'")
+                result = SnmpPushResult(
+                    row=row, status=STATUS_FAILED, error=f"Profil inconnu : '{row.profile_name}'"
+                )
                 result.log_path = _write_log(log_dir, row, result)
                 return result
 

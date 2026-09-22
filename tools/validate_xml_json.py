@@ -9,6 +9,7 @@ Exit 0 = tout OK, exit 1 = au moins une erreur.
                   (pre-commit-hooks check-json couvre déjà .json,
                    ce hook est un filet de sécurité supplémentaire)
 """
+
 import json
 import sys
 import xml.etree.ElementTree as ET
